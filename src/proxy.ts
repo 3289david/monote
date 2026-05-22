@@ -5,7 +5,7 @@ import type { NextRequest } from "next/server";
 const PUBLIC_PATHS = ["/login", "/register", "/forgot-password", "/terms", "/privacy"];
 const API_PUBLIC = ["/api/register", "/api/auth", "/api/schools"];
 
-export default auth(function middleware(req: NextRequest & { auth: any }) {
+export const proxy = auth(function proxy(req: NextRequest & { auth: any }) {
   const { pathname } = req.nextUrl;
 
   // Allow public API routes
@@ -13,7 +13,7 @@ export default auth(function middleware(req: NextRequest & { auth: any }) {
 
   // Allow public pages
   if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) {
-    // If already logged in, redirect away from auth pages
+    // Already logged in → redirect away from auth pages
     if (req.auth?.user && (pathname.startsWith("/login") || pathname.startsWith("/register"))) {
       return NextResponse.redirect(new URL("/feed", req.url));
     }
@@ -37,6 +37,6 @@ export default auth(function middleware(req: NextRequest & { auth: any }) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon|manifest|icons|robots|logo|uploads).*)",
+    "/((?!_next/static|_next/image|favicon|manifest|icons|robots|logo|uploads|sw\\.js|offline\\.html).*)",
   ],
 };

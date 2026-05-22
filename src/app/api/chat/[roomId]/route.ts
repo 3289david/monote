@@ -2,12 +2,14 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-export async function GET(_req: Request, { params }: { params: { roomId: string } }) {
+export async function GET(_req: Request, { params }: { params: Promise<{ roomId: string }> }) {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  const { roomId } = await params;
+
   const room = await prisma.chatRoom.findUnique({
-    where: { id: params.roomId },
+    where: { id: roomId },
     include: { _count: { select: { members: true } } },
   });
 
