@@ -6,6 +6,7 @@ import prisma from "@/lib/prisma";
 import { calculateLevel } from "@/lib/utils";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  trustHost: true,
   adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
   pages: {

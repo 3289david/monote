@@ -10,6 +10,17 @@ import { useQuery } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { z } from "zod";
 
+async function createSchool(name: string, type: string, region: string) {
+  const res = await fetch("/api/schools", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, type, region }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error ?? "학교 추가에 실패했어요");
+  return data.school as { id: string; name: string };
+}
+
 const STEPS = ["학교 선택", "학년/반", "닉네임", "계정 정보"];
 
 const passwordSchema = z.string()
@@ -31,6 +42,9 @@ export default function RegisterPage() {
   const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [addingSchool, setAddingSchool] = useState(false);
+  const [newSchoolType, setNewSchoolType] = useState<"high" | "middle">("high");
+  const [newSchoolRegion, setNewSchoolRegion] = useState("");
 
   const { data: schoolData } = useQuery({
     queryKey: ["schools", schoolQuery],
@@ -156,8 +170,48 @@ export default function RegisterPage() {
                   )}
                 </button>
               ))}
-              {schools.length === 0 && schoolQuery && (
-                <p className="text-sm text-[#64748d] text-center py-4">"{schoolQuery}" 학교를 찾을 수 없어요</p>
+              {schools.length === 0 && schoolQuery && !addingSchool && (
+                <div className="text-center py-4 space-y-3">
+                  <p className="text-sm text-[#64748d]">"{schoolQuery}" 학교를 찾을 수 없어요</p>
+                  <button onClick={() => setAddingSchool(true)}
+                    className="text-sm text-[#533afd] font-medium hover:underline">
+                    + 직접 학교 추가하기
+                  </button>
+                </div>
+              )}
+              {addingSchool && (
+                <div className="border-2 border-[#533afd] rounded-xl p-4 space-y-3 bg-[#f8f7ff]">
+                  <p className="font-medium text-[#0d253d] text-sm">학교 추가</p>
+                  <p className="text-xs text-[#64748d]">학교명: <span className="font-medium text-[#273951]">{schoolQuery}</span></p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {(["high", "middle"] as const).map((t) => (
+                      <button key={t} onClick={() => setNewSchoolType(t)}
+                        className={cn("py-2 rounded-lg border-2 text-sm transition-all",
+                          newSchoolType === t ? "border-[#533afd] bg-[#eeeaff] text-[#533afd]" : "border-[#e3e8ee] bg-white text-[#273951]"
+                        )}>
+                        {t === "high" ? "고등학교" : "중학교"}
+                      </button>
+                    ))}
+                  </div>
+                  <Input placeholder="지역 (예: 서울, 부산)" value={newSchoolRegion}
+                    onChange={(e) => setNewSchoolRegion(e.target.value)} />
+                  <div className="flex gap-2">
+                    <Button variant="ghost" onClick={() => setAddingSchool(false)} className="flex-1 !py-2 text-sm">취소</Button>
+                    <Button disabled={!newSchoolRegion.trim()} className="flex-1 !py-2 text-sm"
+                      onClick={async () => {
+                        try {
+                          const school = await createSchool(schoolQuery, newSchoolType, newSchoolRegion.trim());
+                          setSelectedSchool(school);
+                          setAddingSchool(false);
+                          toast.success("학교가 추가되었어요!");
+                        } catch (e: any) {
+                          toast.error(e.message);
+                        }
+                      }}>
+                      추가
+                    </Button>
+                  </div>
+                </div>
               )}
             </div>
           </div>
