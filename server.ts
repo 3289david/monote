@@ -3,11 +3,13 @@ import { parse } from "url";
 import next from "next";
 import { Server } from "socket.io";
 import { PrismaClient } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
 
 const dev = process.env.NODE_ENV !== "production";
 const app = next({ dev });
 const handle = app.getRequestHandler();
-const prisma = new PrismaClient();
+const adapter = new PrismaPg(process.env.DATABASE_URL!);
+const prisma = new PrismaClient({ adapter });
 const PORT = parseInt(process.env.PORT ?? "3000");
 
 app.prepare().then(() => {
