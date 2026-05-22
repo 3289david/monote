@@ -1,0 +1,75 @@
+{
+  "name": "monote — 학생 커뮤니티",
+  "short_name": "monote",
+  "description": "시험 범위, 수행평가, 족보 공유 — 학생들을 위한 스터디 커뮤니티",
+  "start_url": "/feed",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "orientation": "portrait-primary",
+  "background_color": "#f6f9fc",
+  "theme_color": "#533afd",
+  "lang": "ko",
+  "dir": "ltr",
+  "categories": ["education", "social"],
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "새 글 작성",
+      "short_name": "작성",
+      "description": "새 게시물 작성하기",
+      "url": "/post/new",
+      "icons": [{ "src": "/favicon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "커뮤니티",
+      "short_name": "커뮤니티",
+      "description": "학교 커뮤니티",
+      "url": "/community",
+      "icons": [{ "src": "/favicon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "채팅",
+      "short_name": "채팅",
+      "description": "실시간 채팅",
+      "url": "/chat",
+      "icons": [{ "src": "/favicon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "타이머",
+      "short_name": "타이머",
+      "description": "공부 타이머",
+      "url": "/timer",
+      "icons": [{ "src": "/favicon.svg", "sizes": "any" }]
+    }
+  ],
+  "share_target": {
+    "action": "/post/new",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "content",
+      "url": "url"
+    }
+  },
+  "protocol_handlers": [
+    {
+      "protocol": "web+monote",
+      "url": "/?uri=%s"
+    }
+  ]
+}

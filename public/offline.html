@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>오프라인 — monote</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Noto Sans KR', -apple-system, sans-serif;
+      background: #f6f9fc;
+      color: #0d253d;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px;
+      text-align: center;
+    }
+    .logo {
+      width: 64px; height: 64px; background: #533afd;
+      border-radius: 16px; display: flex; align-items: center;
+      justify-content: center; margin: 0 auto 24px;
+    }
+    h1 { font-size: 22px; font-weight: 400; margin-bottom: 8px; letter-spacing: -0.5px; }
+    p { font-size: 14px; color: #64748d; line-height: 1.6; max-width: 280px; }
+    button {
+      margin-top: 28px; padding: 12px 28px;
+      background: #533afd; color: white;
+      border: none; border-radius: 999px;
+      font-size: 14px; cursor: pointer;
+    }
+    button:hover { background: #4434d4; }
+  </style>
+</head>
+<body>
+  <div class="logo">
+    <svg viewBox="0 0 32 32" fill="none" width="36" height="36">
+      <path d="M5 25V7h4.5l6.5 11 6.5-11H27v18h-4.5V14.5l-6 9-6-9V25H5z" fill="white"/>
+    </svg>
+  </div>
+  <h1>인터넷 연결이 없어요</h1>
+  <p>네트워크 연결을 확인하고<br>다시 시도해주세요</p>
+  <button onclick="window.location.reload()">다시 시도</button>
+</body>
+</html>

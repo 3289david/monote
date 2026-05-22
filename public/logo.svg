@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 40" fill="none">
+  <!-- M icon mark -->
+  <rect x="2" y="4" width="32" height="32" rx="8" fill="#533afd"/>
+  <!-- M letterform in white -->
+  <path d="M8 28V12h4l6 10 6-10h4v16h-4V19l-6 9-6-9v9H8z" fill="white"/>
+  <!-- Wordmark "monote" -->
+  <text x="44" y="27" font-family="system-ui, -apple-system, 'SF Pro Display', sans-serif" font-size="18" font-weight="300" letter-spacing="-0.5" fill="#0d253d">monote</text>
+</svg>

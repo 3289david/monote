@@ -1,0 +1,370 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ── Auth ──────────────────────────────────────────────────────
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ── Users ─────────────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  password     String?
+  nickname     String   @unique
+  avatar       String?
+  schoolId     String
+  school       School   @relation(fields: [schoolId], references: [id])
+  grade        Int
+  classNum     Int
+  points       Int      @default(0)
+  level        Int      @default(1)
+  badges       String[] @default([])
+  postCount    Int      @default(0)
+  helpfulCount Int      @default(0)
+  streakDays   Int      @default(0)
+  lastActiveAt DateTime @default(now())
+  isBanned     Boolean  @default(false)
+  isAdmin      Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  accounts        Account[]
+  sessions        Session[]
+  posts           Post[]
+  comments        Comment[]
+  votes           Vote[]
+  bookmarks       Bookmark[]
+  reports         Report[]
+  notifications   Notification[]
+  sentMessages    ChatMessage[]
+  chatMemberships ChatMember[]
+  ddayItems       DDay[]
+  studyGroups     StudyGroupMember[]
+  createdRooms    ChatRoom[]
+  studySessions   StudySession[]
+  polls           Poll[]
+  pollVotes       PollVote[]
+
+  @@index([schoolId, grade])
+  @@index([points])
+}
+
+// ── Schools ────────────────────────────────────────────────────
+
+model School {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  type        String
+  region      String
+  memberCount Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  users     User[]
+  posts     Post[]
+  chatRooms ChatRoom[]
+}
+
+// ── Posts ──────────────────────────────────────────────────────
+
+model Post {
+  id            String    @id @default(cuid())
+  schoolId      String
+  school        School    @relation(fields: [schoolId], references: [id])
+  authorId      String
+  author        User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  grade         Int
+  subject       String
+  category      String
+  importance    String
+  title         String
+  content       String
+  anonymous     Boolean   @default(false)
+  tags          String[]  @default([])
+  files         Json      @default("[]")
+  voteCount     Int       @default(0)
+  viewCount     Int       @default(0)
+  commentCount  Int       @default(0)
+  bookmarkCount Int       @default(0)
+  reportCount   Int       @default(0)
+  verified      Boolean   @default(false)
+  isPinned      Boolean   @default(false)
+  examDate      DateTime?
+  dueDate       DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  comments  Comment[]
+  votes     Vote[]
+  bookmarks Bookmark[]
+  reports   Report[]
+
+  @@index([schoolId, grade, subject])
+  @@index([schoolId, category])
+  @@index([createdAt])
+  @@index([voteCount])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  content   String
+  anonymous Boolean  @default(false)
+  likes     Int      @default(0)
+  isAnswer  Boolean  @default(false)
+  parentId  String?
+  createdAt DateTime @default(now())
+
+  @@index([postId, createdAt])
+}
+
+model Vote {
+  id        String   @id @default(cuid())
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([postId, userId])
+}
+
+model Bookmark {
+  id        String   @id @default(cuid())
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([postId, userId])
+}
+
+model Report {
+  id         String   @id @default(cuid())
+  postId     String
+  post       Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  reporterId String
+  reporter   User     @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+  reason     String
+  reviewed   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+}
+
+// ── Chat ──────────────────────────────────────────────────────
+
+model ChatRoom {
+  id            String    @id @default(cuid())
+  schoolId      String
+  school        School    @relation(fields: [schoolId], references: [id])
+  name          String
+  type          String
+  grade         Int?
+  subject       String?
+  createdById   String
+  createdBy     User      @relation(fields: [createdById], references: [id])
+  memberCount   Int       @default(0)
+  lastMessage   String?
+  lastMessageAt DateTime?
+  isDefault     Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+
+  messages ChatMessage[]
+  members  ChatMember[]
+
+  @@index([schoolId])
+}
+
+model ChatMember {
+  id         String   @id @default(cuid())
+  roomId     String
+  room       ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  joinedAt   DateTime @default(now())
+  lastReadAt DateTime @default(now())
+
+  @@unique([roomId, userId])
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  roomId    String
+  room      ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  senderId  String
+  sender    User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  content   String
+  type      String   @default("text")
+  fileUrl   String?
+  createdAt DateTime @default(now())
+
+  @@index([roomId, createdAt])
+}
+
+// ── Notifications ─────────────────────────────────────────────
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  title     String
+  body      String
+  read      Boolean  @default(false)
+  link      String?
+  createdAt DateTime @default(now())
+
+  @@index([userId, read, createdAt])
+}
+
+// ── D-Day ─────────────────────────────────────────────────────
+
+model DDay {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  date      DateTime
+  category  String   @default("exam")
+  subject   String?
+  color     String   @default("#533afd")
+  createdAt DateTime @default(now())
+
+  @@index([userId, date])
+}
+
+// ── Study Sessions ─────────────────────────────────────────────
+
+model StudySession {
+  id       String   @id @default(cuid())
+  userId   String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject  String
+  duration Int
+  date     DateTime @default(now())
+
+  @@index([userId, date])
+}
+
+// ── Study Groups ──────────────────────────────────────────────
+
+model StudyGroup {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  schoolId    String
+  subject     String
+  grade       Int
+  maxMembers  Int      @default(10)
+  memberCount Int      @default(0)
+  isPrivate   Boolean  @default(false)
+  inviteCode  String   @unique @default(cuid())
+  createdAt   DateTime @default(now())
+
+  members StudyGroupMember[]
+}
+
+model StudyGroupMember {
+  id       String     @id @default(cuid())
+  groupId  String
+  group    StudyGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role     String     @default("member")
+  joinedAt DateTime   @default(now())
+
+  @@unique([groupId, userId])
+}
+
+// ── Polls ─────────────────────────────────────────────────────
+
+model Poll {
+  id          String       @id @default(cuid())
+  question    String
+  schoolId    String
+  authorId    String
+  author      User         @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  options     PollOption[]
+  votes       PollVote[]
+  endsAt      DateTime?
+  isAnonymous Boolean      @default(false)
+  totalVotes  Int          @default(0)
+  createdAt   DateTime     @default(now())
+
+  @@index([schoolId, createdAt])
+}
+
+model PollOption {
+  id        String     @id @default(cuid())
+  pollId    String
+  poll      Poll       @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  text      String
+  voteCount Int        @default(0)
+}
+
+model PollVote {
+  id        String   @id @default(cuid())
+  pollId    String
+  poll      Poll     @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  optionId  String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([pollId, userId])
+  @@index([pollId])
+}
+
+// ── Reactions ─────────────────────────────────────────────────
+
+model Reaction {
+  id        String   @id @default(cuid())
+  postId    String
+  userId    String
+  emoji     String
+  createdAt DateTime @default(now())
+
+  @@unique([postId, userId, emoji])
+  @@index([postId])
+}
