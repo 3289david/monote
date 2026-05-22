@@ -12,16 +12,16 @@ const createPollSchema = z.object({
 
 export async function GET(req: Request) {
   const session = await auth();
-  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const schoolFilter = session?.user?.schoolId ? { schoolId: session.user.schoolId } : {};
 
   const polls = await prisma.poll.findMany({
-    where: { schoolId: session.user.schoolId },
+    where: schoolFilter,
     orderBy: { createdAt: "desc" },
     take: 20,
     include: {
       options: true,
       author: { select: { nickname: true, level: true, avatar: true } },
-      votes: { where: { userId: session.user.id }, select: { optionId: true } },
+      ...(session?.user?.id ? { votes: { where: { userId: session.user.id }, select: { optionId: true } } } : {}),
     },
   });
 
@@ -40,7 +40,7 @@ export async function GET(req: Request) {
     createdAt: poll.createdAt,
     authorNickname: poll.isAnonymous ? "익명" : poll.author.nickname,
     authorLevel: poll.author.level,
-    myVoteOptionId: poll.votes[0]?.optionId ?? null,
+    myVoteOptionId: poll.votes?.[0]?.optionId ?? null,
     expired: poll.endsAt ? new Date(poll.endsAt) < new Date() : false,
   }));
 
@@ -64,9 +64,7 @@ export async function POST(req: Request) {
       authorId: session.user.id,
       isAnonymous,
       endsAt: endsAt ? new Date(endsAt) : null,
-      options: {
-        create: options.map((text) => ({ text })),
-      },
+      options: { create: options.map((text) => ({ text })) },
     },
     include: { options: true },
   });

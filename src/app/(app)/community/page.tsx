@@ -10,13 +10,14 @@ import toast from "react-hot-toast";
 type TrendingPeriod = "today" | "week" | "month";
 type CommunityTab = "trending" | "polls" | "anon";
 
-function PollCard({ poll }: { poll: any }) {
+function PollCard({ poll, isLoggedIn }: { poll: any; isLoggedIn: boolean }) {
   const voteMutation = useVotePoll(poll.id);
   const voted = !!poll.myVoteOptionId;
   const expired = poll.expired;
-  const canVote = !voted && !expired;
+  const canVote = isLoggedIn && !voted && !expired;
 
   const handleVote = (optionId: string) => {
+    if (!isLoggedIn) { toast.error("투표하려면 로그인이 필요해요"); return; }
     if (!canVote) return;
     voteMutation.mutate(optionId);
     if (navigator.vibrate) navigator.vibrate(40);
@@ -252,8 +253,22 @@ export default function CommunityPage() {
       {/* Header */}
       <div className="mb-4">
         <h1 className="text-xl font-light text-[#0d253d]" style={{ letterSpacing: "-0.4px" }}>커뮤니티</h1>
-        <p className="text-sm text-[#64748d] mt-0.5">우리 학교 학생들과 소통해요</p>
+        <p className="text-sm text-[#64748d] mt-0.5">학생들의 인기 게시물과 투표를 확인해요</p>
       </div>
+
+      {/* Login prompt banner */}
+      {!session && (
+        <div className="bg-[#eeeaff] border border-[#b9b9f9] rounded-2xl p-3 mb-4 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <svg viewBox="0 0 20 20" fill="none" className="w-4 h-4 text-[#533afd] shrink-0">
+              <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth={1.5}/>
+              <path d="M10 6v5M10 13v1" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round"/>
+            </svg>
+            <p className="text-xs text-[#4434d4]">로그인하면 투표·게시물 작성이 가능해요</p>
+          </div>
+          <Link href="/login" className="text-xs font-medium text-white bg-[#533afd] px-3 py-1.5 rounded-full shrink-0 hover:bg-[#4434d4] transition-colors">로그인</Link>
+        </div>
+      )}
 
       {/* Tab bar */}
       <div className="flex bg-[#f6f9fc] rounded-2xl p-1 mb-4 gap-1">
@@ -412,7 +427,12 @@ export default function CommunityPage() {
       {tab === "polls" && (
         <div>
           {/* Create poll button */}
-          {!showCreatePoll ? (
+          {!session ? (
+            <Link href="/login" className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border border-dashed border-[#b9b9f9] text-[#533afd] text-sm hover:bg-[#eeeaff] transition-colors mb-4">
+              <svg viewBox="0 0 16 16" fill="none" className="w-4 h-4"><path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round"/></svg>
+              투표 만들려면 로그인하세요
+            </Link>
+          ) : !showCreatePoll ? (
             <button
               onClick={() => setShowCreatePoll(true)}
               className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border border-dashed border-[#b9b9f9] text-[#533afd] text-sm hover:bg-[#eeeaff] transition-colors mb-4"
@@ -449,7 +469,7 @@ export default function CommunityPage() {
             </div>
           ) : (
             <div>
-              {polls.map((poll: any) => <PollCard key={poll.id} poll={poll} />)}
+              {polls.map((poll: any) => <PollCard key={poll.id} poll={poll} isLoggedIn={!!session} />)}
             </div>
           )}
         </div>
@@ -471,10 +491,16 @@ export default function CommunityPage() {
 
           <div className="flex items-center justify-between mb-3">
             <p className="text-xs text-[#64748d]">{anonPosts.length}개의 익명 게시물</p>
-            <Link href="/post/new" className="flex items-center gap-1 text-xs text-[#533afd] bg-[#eeeaff] px-3 py-1.5 rounded-full hover:bg-[#b9b9f9]/30 transition-colors">
-              <svg viewBox="0 0 12 12" fill="none" className="w-3 h-3"><path d="M6 1v10M1 6h10" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round"/></svg>
-              익명 글쓰기
-            </Link>
+            {session ? (
+              <Link href="/post/new" className="flex items-center gap-1 text-xs text-[#533afd] bg-[#eeeaff] px-3 py-1.5 rounded-full hover:bg-[#b9b9f9]/30 transition-colors">
+                <svg viewBox="0 0 12 12" fill="none" className="w-3 h-3"><path d="M6 1v10M1 6h10" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round"/></svg>
+                익명 글쓰기
+              </Link>
+            ) : (
+              <Link href="/login" className="flex items-center gap-1 text-xs text-[#533afd] bg-[#eeeaff] px-3 py-1.5 rounded-full hover:bg-[#b9b9f9]/30 transition-colors">
+                로그인 후 작성
+              </Link>
+            )}
           </div>
 
           {anonPosts.length === 0 ? (

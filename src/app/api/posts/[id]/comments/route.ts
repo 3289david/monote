@@ -4,9 +4,6 @@ import prisma from "@/lib/prisma";
 import { z } from "zod";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth();
-  if (!session?.user) return NextResponse.json({ error: "로그인 필요" }, { status: 401 });
-
   const { id: postId } = await params;
   const comments = await prisma.comment.findMany({
     where: { postId },
@@ -68,7 +65,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     data: { points: { increment: 3 } },
   });
 
-  // Notify post author
   if (post.authorId !== session.user.id) {
     await prisma.notification.create({
       data: {
