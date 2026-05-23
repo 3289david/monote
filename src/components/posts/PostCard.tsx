@@ -170,7 +170,15 @@ export default function PostCard({ post, compact = false, examMode = false }: Po
         {/* Bottom row */}
         <div className="flex items-center justify-between">
           <span className={cn("text-xs flex items-center gap-1.5", examMode ? "text-white/35" : "text-gray-400")}>
-            {post.anonymous ? "익명" : post.authorNickname}
+            {post.anonymous ? (
+              <span>익명</span>
+            ) : (
+              <Link href={`/profile/${(post as any).authorId}`}
+                onClick={(e) => e.stopPropagation()}
+                className="hover:text-[#533afd] hover:underline transition-colors">
+                {post.authorNickname}
+              </Link>
+            )}
             <span>·</span>
             {timeAgo(new Date(post.createdAt))}
             <span>·</span>

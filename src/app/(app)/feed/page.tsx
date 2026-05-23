@@ -72,6 +72,19 @@ const QUICK_ACTIONS = [
     color: "bg-indigo-50 text-[#533afd]",
     accent: "#533afd",
   },
+  {
+    href: "/notes",
+    label: "노트",
+    desc: "내 메모",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5">
+        <rect x="4" y="2" width="16" height="20" rx="3" stroke="currentColor" strokeWidth={1.5}/>
+        <path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round"/>
+      </svg>
+    ),
+    color: "bg-emerald-50 text-emerald-600",
+    accent: "#059669",
+  },
 ];
 
 export default function FeedPage() {
@@ -81,6 +94,7 @@ export default function FeedPage() {
   const selectedGrade = useUIStore((s) => s.selectedGrade);
   const [activeCategory, setActiveCategory] = useState<PostCategory | "all">("all");
   const [sortBy, setSortBy] = useState<"latest" | "popular" | "hot">("latest");
+  const [scope, setScope] = useState<"school" | "all">("school");
 
   // Pull-to-refresh
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -93,6 +107,7 @@ export default function FeedPage() {
     category: activeCategory === "all" ? undefined : activeCategory,
     sortBy,
     examMode,
+    scope,
   });
 
   const posts = data?.pages.flatMap((p) => p.posts) ?? [];
@@ -174,7 +189,7 @@ export default function FeedPage() {
                 오늘도 함께<br/>공부해요
               </h2>
               {/* Quick action cards */}
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-5 gap-1.5">
                 {QUICK_ACTIONS.map((action) => (
                   <Link key={action.href} href={action.href}
                     className="group flex flex-col items-center gap-1.5 bg-white/88 backdrop-blur-md rounded-2xl py-3 px-1 hover:bg-white active:scale-95 transition-all duration-150"
@@ -245,6 +260,36 @@ export default function FeedPage() {
 
       {/* Filters */}
       <div className="space-y-2">
+        {/* School / All scope toggle */}
+        <div className="flex items-center gap-2">
+          <div className="flex rounded-full p-0.5 bg-gray-100 gap-0.5">
+            {(["school", "all"] as const).map((s) => (
+              <button key={s} onClick={() => setScope(s)}
+                className={cn(
+                  "px-3 py-1 rounded-full text-xs font-medium transition-all",
+                  scope === s ? "bg-[#533afd] text-white shadow-sm" : "text-gray-500 hover:text-gray-700"
+                )}>
+                {s === "school" ? (
+                  <span className="flex items-center gap-1">
+                    <svg viewBox="0 0 12 12" fill="none" className="w-3 h-3">
+                      <path d="M1 5l5-3.5L11 5v6H7V8H5v3H1V5z" stroke="currentColor" strokeWidth={1.2} strokeLinejoin="round"/>
+                    </svg>
+                    우리 학교
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1">
+                    <svg viewBox="0 0 12 12" fill="none" className="w-3 h-3">
+                      <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth={1.2}/>
+                      <path d="M1 6h10M6 1c-1.5 1.5-2.5 3-2.5 5s1 3.5 2.5 5M6 1c1.5 1.5 2.5 3 2.5 5S7.5 9.5 6 11" stroke="currentColor" strokeWidth={1.2}/>
+                    </svg>
+                    전체
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="flex gap-1.5 overflow-x-auto pb-0.5 no-scrollbar">
           {CATEGORIES.map((f) => (
             <button key={f.value} onClick={() => setActiveCategory(f.value)}

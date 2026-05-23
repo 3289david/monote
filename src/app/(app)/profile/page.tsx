@@ -25,9 +25,12 @@ export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState<"posts" | "bookmarks" | "settings">("posts");
   const [editNickname, setEditNickname] = useState(false);
   const [newNickname, setNewNickname] = useState(session?.user?.nickname ?? "");
+  const [editBio, setEditBio] = useState(false);
+  const [newBio, setNewBio] = useState((session?.user as any)?.bio ?? "");
   const [currentPw, setCurrentPw] = useState("");
   const [newPw, setNewPw] = useState("");
   const [confirmNewPw, setConfirmNewPw] = useState("");
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   const user = session?.user;
 
@@ -43,9 +46,17 @@ export default function ProfilePage() {
     enabled: activeTab === "bookmarks",
   });
 
+  const patchMe = async (payload: Record<string, unknown>) => {
+    const res = await fetch("/api/users/me", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    return res.json();
+  };
+
   const updateNickname = useMutation({
-    mutationFn: (nickname: string) =>
-      fetch("/api/users/me", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nickname }) }).then((r) => r.json()),
+    mutationFn: (nickname: string) => patchMe({ nickname }),
     onSuccess: async (data) => {
       if (data.error) { toast.error(data.error); return; }
       await update({ nickname: data.user.nickname });
@@ -54,6 +65,49 @@ export default function ProfilePage() {
     },
     onError: () => toast.error("변경에 실패했어요"),
   });
+
+  const updateBio = useMutation({
+    mutationFn: (bio: string) => patchMe({ bio }),
+    onSuccess: async (data) => {
+      if (data.error) { toast.error(data.error); return; }
+      await update();
+      setEditBio(false);
+      toast.success("소개가 변경되었어요!");
+    },
+    onError: () => toast.error("변경에 실패했어요"),
+  });
+
+  const updatePrivacy = useMutation({
+    mutationFn: (profileVisibility: string) => patchMe({ profileVisibility }),
+    onSuccess: async (data) => {
+      if (data.error) { toast.error(data.error); return; }
+      await update();
+      toast.success("공개 설정이 변경되었어요!");
+    },
+    onError: () => toast.error("변경에 실패했어요"),
+  });
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) { toast.error("이미지 파일만 업로드할 수 있어요"); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error("5MB 이하 이미지만 가능해요"); return; }
+    setUploadingAvatar(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/upload", { method: "POST", body: fd });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "업로드 실패");
+      await patchMe({ avatar: data.url });
+      await update({ image: data.url });
+      toast.success("프로필 사진이 변경되었어요!");
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
 
   const updatePassword = useMutation({
     mutationFn: (data: { currentPassword: string; newPassword: string }) =>
@@ -90,7 +144,22 @@ export default function ProfilePage() {
         </svg>
         <div className="relative z-10">
         <div className="flex items-center gap-4">
-          <Avatar nickname={user.nickname} level={user.level ?? 1} size="xl" imageUrl={user.image ?? undefined} />
+          <label className="relative cursor-pointer group">
+            <Avatar nickname={user.nickname} level={user.level ?? 1} size="xl" imageUrl={user.image ?? undefined} />
+            <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              {uploadingAvatar ? (
+                <svg className="w-5 h-5 text-white animate-spin" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" strokeDasharray="28" strokeDashoffset="14"/>
+                </svg>
+              ) : (
+                <svg viewBox="0 0 20 20" fill="none" className="w-5 h-5 text-white">
+                  <path d="M10 3v10M6 7l4-4 4 4" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M3 17h14" stroke="currentColor" strokeWidth={2} strokeLinecap="round"/>
+                </svg>
+              )}
+            </div>
+            <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} disabled={uploadingAvatar} />
+          </label>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-0.5">
               <h2 className="text-white text-xl font-medium">{user.nickname}</h2>
@@ -185,6 +254,70 @@ export default function ProfilePage() {
 
       {activeTab === "settings" && (
         <div className="space-y-4">
+          {/* Bio */}
+          <div className={cn("rounded-xl border p-4", cardBg)}>
+            <p className={cn("text-sm font-medium mb-3", textColor)}>자기소개</p>
+            {editBio ? (
+              <div className="space-y-2">
+                <textarea value={newBio} onChange={(e) => setNewBio(e.target.value)} maxLength={150} rows={3}
+                  placeholder="나를 소개해보세요 (최대 150자)"
+                  className={cn("w-full rounded-xl px-3 py-2 text-sm border focus:outline-none focus:border-[#533afd] resize-none",
+                    examMode ? "bg-[#2a2d6b] border-[#363996] text-white placeholder:text-white/30" : "bg-[#f6f9fc] border-[#e3e8ee] text-[#0d253d] placeholder:text-[#64748d]")} />
+                <div className="flex gap-2">
+                  <button onClick={() => updateBio.mutate(newBio)} disabled={updateBio.isPending}
+                    className="px-3 py-2 bg-[#533afd] text-white rounded-xl text-sm disabled:opacity-50">저장</button>
+                  <button onClick={() => setEditBio(false)} className={cn("px-3 py-2 rounded-xl text-sm", examMode ? "bg-[#2a2d6b] text-white/60" : "bg-[#f6f9fc] text-[#64748d]")}>취소</button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-start justify-between gap-2">
+                <span className={cn("text-sm flex-1", (user as any).bio ? textColor : mutedText)}>
+                  {(user as any).bio || "소개가 없어요"}
+                </span>
+                <button onClick={() => { setNewBio((user as any).bio ?? ""); setEditBio(true); }}
+                  className="text-sm text-[#533afd] hover:underline flex-shrink-0">변경</button>
+              </div>
+            )}
+          </div>
+
+          {/* Privacy */}
+          <div className={cn("rounded-xl border p-4", cardBg)}>
+            <p className={cn("text-sm font-medium mb-3", textColor)}>프로필 공개 설정</p>
+            <div className="space-y-2">
+              {[
+                { value: "public", label: "전체 공개", desc: "누구나 내 프로필을 볼 수 있어요" },
+                { value: "school_only", label: "학교 내 공개", desc: "같은 학교 학생만 볼 수 있어요" },
+                { value: "private", label: "완전 비공개", desc: "아무도 내 프로필을 볼 수 없어요" },
+              ].map((opt) => (
+                <button key={opt.value}
+                  onClick={() => updatePrivacy.mutate(opt.value)}
+                  disabled={updatePrivacy.isPending}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border text-left transition-all",
+                    (user as any).profileVisibility === opt.value
+                      ? "bg-[#eeeaff] border-[#533afd]/30"
+                      : examMode ? "border-[#2a2d6b] hover:border-[#363996]" : "border-[#e3e8ee] hover:border-[#b9b9f9]"
+                  )}>
+                  <div className={cn(
+                    "w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0",
+                    (user as any).profileVisibility === opt.value ? "border-[#533afd]" : "border-[#a8c3de]"
+                  )}>
+                    {(user as any).profileVisibility === opt.value && (
+                      <div className="w-2 h-2 rounded-full bg-[#533afd]" />
+                    )}
+                  </div>
+                  <div>
+                    <p className={cn("text-sm font-medium", textColor)}>{opt.label}</p>
+                    <p className={cn("text-xs", mutedText)}>{opt.desc}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+            <p className={cn("text-xs mt-3", mutedText)}>
+              * 비공개 설정과 관계없이 게시물의 이름은 항상 표시돼요
+            </p>
+          </div>
+
           {/* Nickname */}
           <div className={cn("rounded-xl border p-4", cardBg)}>
             <p className={cn("text-sm font-medium mb-3", textColor)}>닉네임 변경</p>

@@ -41,6 +41,15 @@ function IconProfile({ active }: { active: boolean }) {
   );
 }
 
+function IconNote({ active }: { active: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5">
+      <rect x="4" y="2" width="16" height="20" rx="3" stroke="currentColor" strokeWidth={active ? 2.2 : 1.7} strokeLinejoin="round"/>
+      <path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor" strokeWidth={active ? 2.2 : 1.7} strokeLinecap="round"/>
+    </svg>
+  );
+}
+
 const NAV = [
   { href: "/feed", label: "홈", Icon: IconHome },
   { href: "/community", label: "커뮤니티", Icon: IconCommunity },

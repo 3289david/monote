@@ -5,6 +5,9 @@ import { z } from "zod";
 
 const updateSchema = z.object({
   nickname: z.string().min(2).max(15).regex(/^[가-힣a-zA-Z0-9_]+$/).optional(),
+  bio: z.string().max(150).optional().nullable(),
+  avatar: z.string().optional().nullable(),
+  profileVisibility: z.enum(["public", "school_only", "private"]).optional(),
 });
 
 export async function GET() {
@@ -18,6 +21,7 @@ export async function GET() {
       badges: true, streakDays: true, schoolId: true,
       school: { select: { name: true } },
       grade: true, classNum: true, avatar: true,
+      bio: true, profileVisibility: true,
       _count: { select: { posts: true, votes: true } },
     },
   });

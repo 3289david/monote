@@ -2,9 +2,11 @@
 import { useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useUIStore } from "@/store/ui-store";
-import { cn } from "@/lib/utils";
+import { cn, getLevelName, calculateLevel } from "@/lib/utils";
 import PostCard from "@/components/posts/PostCard";
 import GradientHero from "@/components/ui/GradientHero";
+import Avatar from "@/components/ui/Avatar";
+import Link from "next/link";
 
 const POPULAR_SEARCHES = [
   "수학 시험 범위", "영어 수행평가", "삼각함수", "국어 서술형",
@@ -15,15 +17,17 @@ export default function SearchPage() {
   const examMode = useUIStore((s) => s.examMode);
   const [query, setQuery] = useState("");
   const [submitted, setSubmitted] = useState("");
+  const [searchTab, setSearchTab] = useState<"posts" | "users">("posts");
 
   const { data, isFetching } = useQuery({
-    queryKey: ["search", submitted],
-    queryFn: () => fetch(`/api/search?q=${encodeURIComponent(submitted)}`).then((r) => r.json()),
+    queryKey: ["search", submitted, searchTab],
+    queryFn: () => fetch(`/api/search?q=${encodeURIComponent(submitted)}&type=${searchTab}`).then((r) => r.json()),
     enabled: submitted.trim().length >= 2,
     staleTime: 30000,
   });
 
   const results = data?.posts ?? [];
+  const userResults = data?.users ?? [];
 
   const handleSearch = useCallback(() => {
     if (query.trim().length < 2) return;
@@ -60,7 +64,7 @@ export default function SearchPage() {
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+          onKeyDown={(e) => e.key === "Enter" && !e.nativeEvent.isComposing && handleSearch()}
           placeholder="게시물 검색... (2자 이상)"
           autoFocus
           className={cn(
@@ -109,27 +113,67 @@ export default function SearchPage() {
         </div>
       )}
 
+      {/* Search type tabs */}
+      {submitted && (
+        <div className={cn("flex rounded-xl p-1 gap-1", examMode ? "bg-[#1c1e54]" : "bg-[#f6f9fc]")}>
+          {(["posts", "users"] as const).map((t) => (
+            <button key={t} onClick={() => setSearchTab(t)}
+              className={cn("flex-1 py-2 rounded-lg text-sm font-medium transition-colors",
+                searchTab === t ? "bg-[#533afd] text-white" : examMode ? "text-white/50 hover:text-white" : "text-[#64748d] hover:text-[#273951]")}>
+              {t === "posts" ? "게시물" : "사용자"}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Results */}
-      {!isFetching && submitted && (
+      {!isFetching && submitted && searchTab === "posts" && (
         <div>
           <p className={cn("text-sm mb-3", mutedText)}>
-            "{submitted}" 검색 결과 <span className="font-medium text-[#533afd]">{results.length}개</span>
+            게시물 <span className="font-medium text-[#533afd]">{results.length}개</span>
           </p>
           {results.length === 0 ? (
             <div className="text-center py-12">
-              <div className="w-14 h-14 rounded-full bg-[#f6f9fc] flex items-center justify-center mx-auto mb-3">
-                <svg viewBox="0 0 24 24" fill="none" className="w-7 h-7 text-[#64748d]">
-                  <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth={1.5} />
-                  <path d="M16.5 16.5L21 21" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" />
-                  <path d="M8 11h6M11 8v6" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" />
-                </svg>
-              </div>
               <p className={cn("font-medium mb-1", textColor)}>검색 결과가 없어요</p>
               <p className={cn("text-sm", mutedText)}>다른 키워드로 검색해보세요</p>
             </div>
           ) : (
             <div className="space-y-3">
               {results.map((post: any) => <PostCard key={post.id} post={post} examMode={examMode} />)}
+            </div>
+          )}
+        </div>
+      )}
+
+      {!isFetching && submitted && searchTab === "users" && (
+        <div>
+          <p className={cn("text-sm mb-3", mutedText)}>
+            사용자 <span className="font-medium text-[#533afd]">{userResults.length}개</span>
+          </p>
+          {userResults.length === 0 ? (
+            <div className="text-center py-12">
+              <p className={cn("font-medium mb-1", textColor)}>사용자를 찾을 수 없어요</p>
+              <p className={cn("text-sm", mutedText)}>닉네임으로 검색해보세요</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {userResults.map((u: any) => (
+                <Link key={u.id} href={`/profile/${u.id}`}
+                  className={cn(
+                    "flex items-center gap-3 p-3 rounded-xl border transition-all hover:-translate-y-0.5",
+                    examMode ? "bg-[#1c1e54] border-[#2a2d6b] hover:border-[#533afd]" : "bg-white border-[#e3e8ee] hover:border-[#b9b9f9]"
+                  )}
+                  style={{ boxShadow: "0 1px 3px rgba(0,55,112,0.06)" }}>
+                  <Avatar nickname={u.nickname} level={calculateLevel(u.points ?? 0)} size="md" imageUrl={u.avatar} />
+                  <div className="flex-1 min-w-0">
+                    <p className={cn("font-medium text-sm", examMode ? "text-white" : "text-[#0d253d]")}>{u.nickname}</p>
+                    <p className={cn("text-xs", mutedText)}>{u.schoolName} · {u.grade}학년</p>
+                  </div>
+                  <span className="text-xs text-[#533afd] bg-[#eeeaff] px-2 py-0.5 rounded-full">
+                    {getLevelName(calculateLevel(u.points ?? 0))}
+                  </span>
+                </Link>
+              ))}
             </div>
           )}
         </div>

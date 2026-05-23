@@ -35,10 +35,11 @@ export async function GET(req: NextRequest) {
   const page = parseInt(searchParams.get("page") ?? "1");
   const limit = 20;
 
+  const scope = searchParams.get("scope") ?? "school"; // "school" | "all"
   const where: any = { reportCount: { lt: 5 } };
 
-  // Filter by school only when logged in
-  if (session?.user) {
+  // Filter by school unless scope=all
+  if (scope !== "all" && session?.user) {
     where.schoolId = (session.user as any).schoolId;
   }
 

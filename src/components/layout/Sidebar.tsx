@@ -97,6 +97,17 @@ const NAV = [
     ),
   },
   {
+    href: "/notes",
+    label: "미니 노트",
+    auth: true,
+    icon: (
+      <svg viewBox="0 0 20 20" fill="none" className="w-4 h-4 flex-shrink-0">
+        <rect x="3" y="2" width="14" height="17" rx="2.5" stroke="currentColor" strokeWidth={1.5}/>
+        <path d="M6 7h8M6 10h8M6 13h5" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round"/>
+      </svg>
+    ),
+  },
+  {
     href: "/notifications",
     label: "알림",
     auth: true,

@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { useUIStore } from "@/store/ui-store";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
+import Link from "next/link";
 
 const SUBJECTS = ["국어", "수학", "영어", "과학", "사회", "역사", "물리", "화학", "생명과학", "지구과학", "기타"];
 
@@ -35,14 +36,23 @@ export default function GroupsPage() {
     onError: () => toast.error("생성에 실패했어요"),
   });
 
+  const [pendingGroupId, setPendingGroupId] = useState<string | null>(null);
+
   const joinMutation = useMutation({
-    mutationFn: ({ id, action }: { id: string; action: "join" | "leave" }) =>
-      fetch(`/api/groups/${id}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action }) }).then((r) => r.json()),
+    mutationFn: ({ id, action }: { id: string; action: "join" | "leave" }) => {
+      setPendingGroupId(id);
+      return fetch(`/api/groups/${id}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action }) }).then((r) => r.json());
+    },
     onSuccess: (data, { action }) => {
+      setPendingGroupId(null);
       if (data.error) { toast.error(data.error); return; }
       qc.invalidateQueries({ queryKey: ["groups"] });
       toast.success(action === "join" ? "그룹에 참여했어요!" : "그룹에서 나왔어요");
+      if (action === "join" && data.chatRoomId) {
+        toast.success("그룹 채팅방이 생성되었어요!", { id: "group-chat" });
+      }
     },
+    onError: () => setPendingGroupId(null),
   });
 
   const textColor = examMode ? "text-white" : "text-[#0d253d]";
@@ -190,7 +200,7 @@ export default function GroupsPage() {
                   {group.description && (
                     <p className={cn("text-sm mt-0.5 line-clamp-2", mutedText)}>{group.description}</p>
                   )}
-                  <div className="flex items-center gap-3 mt-2">
+                  <div className="flex items-center gap-3 mt-2 flex-wrap">
                     <span className={cn("flex items-center gap-1 text-xs", mutedText)}>
                       <svg viewBox="0 0 12 12" fill="none" className="w-3 h-3">
                         <circle cx="6" cy="4" r="2" stroke="currentColor" strokeWidth={1} />
@@ -199,12 +209,21 @@ export default function GroupsPage() {
                       {group.memberCount}/{group.maxMembers}명
                     </span>
                     {isFull && <span className="text-xs text-rose-500 font-medium">정원 마감</span>}
+                    {group.isMember && group.chatRoomId && (
+                      <Link href={`/chat/${group.chatRoomId}`}
+                        className="flex items-center gap-1 text-xs text-[#533afd] hover:underline">
+                        <svg viewBox="0 0 12 12" fill="none" className="w-3 h-3">
+                          <path d="M10 7a1 1 0 01-1 1H3L1 10V3a1 1 0 011-1h7a1 1 0 011 1v4z" stroke="currentColor" strokeWidth={1} strokeLinejoin="round"/>
+                        </svg>
+                        그룹 채팅
+                      </Link>
+                    )}
                   </div>
                 </div>
 
                 <button
                   onClick={() => joinMutation.mutate({ id: group.id, action: group.isMember ? "leave" : "join" })}
-                  disabled={joinMutation.isPending || (isFull && !group.isMember) || group.myRole === "leader"}
+                  disabled={pendingGroupId === group.id || (isFull && !group.isMember) || group.myRole === "leader"}
                   className={cn(
                     "flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-colors",
                     group.isMember

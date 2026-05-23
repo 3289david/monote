@@ -10,6 +10,7 @@ interface PostFilter {
   category?: PostCategory;
   sortBy?: "latest" | "popular" | "hot";
   examMode?: boolean;
+  scope?: "school" | "all";
 }
 
 async function fetchPosts(params: PostFilter & { page: number }) {
@@ -19,6 +20,7 @@ async function fetchPosts(params: PostFilter & { page: number }) {
   if (params.category) qs.set("category", params.category);
   if (params.sortBy) qs.set("sortBy", params.sortBy);
   if (params.examMode) qs.set("examMode", "true");
+  if (params.scope) qs.set("scope", params.scope);
   qs.set("page", String(params.page));
 
   const res = await fetch(`/api/posts?${qs}`);

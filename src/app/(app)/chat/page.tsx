@@ -32,6 +32,7 @@ export default function ChatPage() {
       toast.error("채팅방 이름을 입력해주세요");
       return;
     }
+    if (creating) return; // prevent double-submit
     setCreating(true);
     try {
       const res = await fetch("/api/chat", {
@@ -81,7 +82,7 @@ export default function ChatPage() {
               "w-full rounded-xl px-4 py-2.5 text-sm border focus:outline-none focus:border-[#533afd]",
               examMode ? "bg-[#2a2d6b] border-[#363996] text-white placeholder:text-white/30" : "bg-[#f6f9fc] border-[#e3e8ee] text-[#0d253d] placeholder:text-[#64748d]"
             )}
-            onKeyDown={(e) => e.key === "Enter" && handleCreateRoom()}
+            onKeyDown={(e) => e.key === "Enter" && !e.nativeEvent.isComposing && handleCreateRoom()}
           />
           <div className="flex gap-2">
             <button onClick={() => setShowCreate(false)} className={cn("flex-1 py-2 rounded-xl text-sm", examMode ? "bg-[#2a2d6b] text-white/60" : "bg-[#f6f9fc] text-[#64748d]")}>취소</button>

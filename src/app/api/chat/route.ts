@@ -32,9 +32,23 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
   const data = schema.parse(body);
 
+  const schoolId = (session.user as any).schoolId;
+
+  // Idempotency: prevent exact-duplicate room names per school within 5 seconds
+  const recent = await prisma.chatRoom.findFirst({
+    where: {
+      schoolId,
+      name: data.name,
+      type: data.type,
+      createdById: session.user.id!,
+      createdAt: { gte: new Date(Date.now() - 5000) },
+    },
+  });
+  if (recent) return NextResponse.json({ room: recent }, { status: 200 });
+
   const room = await prisma.chatRoom.create({
     data: {
-      schoolId: (session.user as any).schoolId,
+      schoolId,
       createdById: session.user.id!,
       name: data.name,
       type: data.type,
@@ -45,8 +59,10 @@ export async function POST(req: NextRequest) {
   });
 
   // Auto-join creator
-  await prisma.chatMember.create({
-    data: { roomId: room.id, userId: session.user.id! },
+  await prisma.chatMember.upsert({
+    where: { roomId_userId: { roomId: room.id, userId: session.user.id! } },
+    create: { roomId: room.id, userId: session.user.id! },
+    update: {},
   });
 
   return NextResponse.json({ room }, { status: 201 });

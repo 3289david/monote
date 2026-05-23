@@ -109,10 +109,10 @@ export default function NewPostPage() {
   }, [tags]);
 
   const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (["Enter", " ", ","].includes(e.key)) {
+    if (["Enter", " ", ","].includes(e.key) && !e.nativeEvent.isComposing) {
       e.preventDefault();
       addTag(tagInput);
-    } else if (e.key === "Backspace" && tagInput === "" && tags.length > 0) {
+    } else if (e.key === "Backspace" && tagInput === "" && tags.length > 0 && !e.nativeEvent.isComposing) {
       setTags((prev) => prev.slice(0, -1));
     }
   };

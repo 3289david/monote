@@ -192,8 +192,18 @@ export default function PostDetailPage() {
         {/* Title */}
         <div>
           <h1 className="text-xl font-semibold text-gray-900 leading-snug mb-2" style={{ letterSpacing: "-0.4px" }}>{post.title}</h1>
-          <p className="text-sm text-gray-400">
-            {post.anonymous ? "익명" : post.authorNickname} · {timeAgo(new Date(post.createdAt))} · 조회 {post.viewCount}
+          <p className="text-sm text-gray-400 flex items-center gap-1 flex-wrap">
+            {post.anonymous ? (
+              <span>익명</span>
+            ) : (
+              <Link href={`/profile/${post.authorId}`} className="hover:text-[#533afd] hover:underline transition-colors">
+                {post.authorNickname}
+              </Link>
+            )}
+            <span>·</span>
+            {timeAgo(new Date(post.createdAt))}
+            <span>·</span>
+            조회 {post.viewCount}
           </p>
         </div>
 

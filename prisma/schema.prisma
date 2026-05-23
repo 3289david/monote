@@ -46,26 +46,28 @@ model VerificationToken {
 // ── Users ─────────────────────────────────────────────────────
 
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  password     String?
-  nickname     String   @unique
-  avatar       String?
-  schoolId     String
-  school       School   @relation(fields: [schoolId], references: [id])
-  grade        Int
-  classNum     Int
-  points       Int      @default(0)
-  level        Int      @default(1)
-  badges       String[] @default([])
-  postCount    Int      @default(0)
-  helpfulCount Int      @default(0)
-  streakDays   Int      @default(0)
-  lastActiveAt DateTime @default(now())
-  isBanned     Boolean  @default(false)
-  isAdmin      Boolean  @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id                 String   @id @default(cuid())
+  email              String   @unique
+  password           String?
+  nickname           String   @unique
+  avatar             String?
+  bio                String?
+  profileVisibility  String   @default("public") // "public" | "school_only" | "private"
+  schoolId           String
+  school             School   @relation(fields: [schoolId], references: [id])
+  grade              Int
+  classNum           Int
+  points             Int      @default(0)
+  level              Int      @default(1)
+  badges             String[] @default([])
+  postCount          Int      @default(0)
+  helpfulCount       Int      @default(0)
+  streakDays         Int      @default(0)
+  lastActiveAt       DateTime @default(now())
+  isBanned           Boolean  @default(false)
+  isAdmin            Boolean  @default(false)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
   accounts        Account[]
   sessions        Session[]
@@ -83,9 +85,12 @@ model User {
   studySessions   StudySession[]
   polls           Poll[]
   pollVotes       PollVote[]
+  notes           Note[]
+  groupTodos      GroupTodo[]
 
   @@index([schoolId, grade])
   @@index([points])
+  @@index([nickname])
 }
 
 // ── Schools ────────────────────────────────────────────────────
@@ -210,8 +215,9 @@ model ChatRoom {
   isDefault     Boolean   @default(false)
   createdAt     DateTime  @default(now())
 
-  messages ChatMessage[]
-  members  ChatMember[]
+  messages   ChatMessage[]
+  members    ChatMember[]
+  studyGroup StudyGroup?
 
   @@index([schoolId])
 }
@@ -300,9 +306,42 @@ model StudyGroup {
   memberCount Int      @default(0)
   isPrivate   Boolean  @default(false)
   inviteCode  String   @unique @default(cuid())
+  chatRoomId  String?  @unique
+  chatRoom    ChatRoom? @relation(fields: [chatRoomId], references: [id])
   createdAt   DateTime @default(now())
 
   members StudyGroupMember[]
+  todos   GroupTodo[]
+}
+
+model GroupTodo {
+  id          String     @id @default(cuid())
+  groupId     String
+  group       StudyGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  createdById String
+  createdBy   User       @relation(fields: [createdById], references: [id])
+  title       String
+  completed   Boolean    @default(false)
+  completedById String?
+  dueDate     DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([groupId])
+}
+
+model Note {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  content   String   @default("")
+  color     String   @default("#ffffff")
+  pinned    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, createdAt])
 }
 
 model StudyGroupMember {
