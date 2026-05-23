@@ -23,50 +23,54 @@ const QUICK_ACTIONS = [
     label: "D-Day",
     desc: "시험까지",
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" className="w-6 h-6">
+      <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5">
         <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth={1.5}/>
         <path d="M12 7v5l3 3" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"/>
       </svg>
     ),
     color: "bg-amber-50 text-amber-600",
+    accent: "#f59e0b",
   },
   {
     href: "/timer",
     label: "타이머",
     desc: "집중 모드",
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" className="w-6 h-6">
+      <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5">
         <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" stroke="currentColor" strokeWidth={1.5}/>
         <path d="M12 6v6l4 2" stroke="currentColor" strokeWidth={2} strokeLinecap="round"/>
         <path d="M9 2h6" stroke="currentColor" strokeWidth={2} strokeLinecap="round"/>
       </svg>
     ),
     color: "bg-rose-50 text-rose-500",
+    accent: "#ea2261",
   },
   {
     href: "/groups",
     label: "스터디",
     desc: "그룹 모임",
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" className="w-6 h-6">
+      <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5">
         <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round"/>
         <circle cx="9" cy="7" r="4" stroke="currentColor" strokeWidth={1.5}/>
         <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round"/>
       </svg>
     ),
     color: "bg-violet-50 text-violet-600",
+    accent: "#7c3aed",
   },
   {
-    href: "/post/new",
-    label: "글쓰기",
-    desc: "질문·자료",
+    href: "/search",
+    label: "검색",
+    desc: "바로 찾기",
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" className="w-6 h-6">
-        <path d="M12 5H5a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2v-7" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round"/>
-        <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"/>
+      <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5">
+        <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth={1.5}/>
+        <path d="M20 20l-3.5-3.5" stroke="currentColor" strokeWidth={2} strokeLinecap="round"/>
       </svg>
     ),
     color: "bg-indigo-50 text-[#533afd]",
+    accent: "#533afd",
   },
 ];
 
@@ -123,78 +127,103 @@ export default function FeedPage() {
       )}
 
       {/* ── Gradient Hero ── */}
-      <div className="relative overflow-hidden rounded-2xl" style={{ minHeight: "160px" }}>
-        {/* Gradient mesh background */}
+      <div className="relative overflow-hidden rounded-2xl" style={{ minHeight: "240px" }}>
+        {/* Deep gradient mesh — cream → magenta → lavender → indigo → brand-dark */}
         <div className="absolute inset-0" style={{
-          background: "linear-gradient(135deg, #f5e9d4 0%, #f96bee 30%, #b9b9f9 55%, #533afd 78%, #1c1e54 100%)",
+          background: "linear-gradient(140deg, #f5e9d4 0%, #fcd9b0 12%, #f96bee 32%, #c4b8fc 54%, #533afd 74%, #2e2b8c 88%, #1c1e54 100%)",
         }} />
-        {/* Decorative SVG blobs */}
-        <svg className="absolute inset-0 w-full h-full" viewBox="0 0 400 200" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-          <ellipse cx="340" cy="40" rx="120" ry="90" fill="white" fillOpacity="0.07"/>
-          <ellipse cx="60" cy="160" rx="90" ry="70" fill="white" fillOpacity="0.06"/>
-          <ellipse cx="200" cy="100" rx="200" ry="60" fill="white" fillOpacity="0.04"/>
-          <circle cx="370" cy="150" r="50" fill="#ea2261" fillOpacity="0.2"/>
-          <circle cx="30" cy="40" r="40" fill="#f96bee" fillOpacity="0.15"/>
+
+        {/* Atmospheric mesh blobs */}
+        <svg className="absolute inset-0 w-full h-full" viewBox="0 0 420 260" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+          {/* Large ambient ellipses */}
+          <ellipse cx="360" cy="30" rx="160" ry="110" fill="white" fillOpacity="0.06"/>
+          <ellipse cx="50" cy="200" rx="110" ry="85" fill="white" fillOpacity="0.05"/>
+          <ellipse cx="210" cy="130" rx="230" ry="80" fill="white" fillOpacity="0.035"/>
+          {/* Ruby accent blobs */}
+          <circle cx="380" cy="185" r="65" fill="#ea2261" fillOpacity="0.22"/>
+          <circle cx="28" cy="50" r="52" fill="#f96bee" fillOpacity="0.18"/>
+          {/* Subtle shimmer bands */}
+          <ellipse cx="200" cy="15" rx="180" ry="28" fill="white" fillOpacity="0.08"/>
+          <ellipse cx="200" cy="245" rx="140" ry="22" fill="#1c1e54" fillOpacity="0.25"/>
         </svg>
 
-        {/* Shiny star SVG */}
-        <svg className="absolute top-4 right-6 w-12 h-12 text-white/20" viewBox="0 0 48 48" fill="none">
-          <path d="M24 4l2.9 12.4L40 12l-9.6 9.6L44 24l-13.6 2.9L34 40l-10-9.6L24 44l-2.9-12.4L8 36l9.6-9.6L4 24l13.6-2.9L14 8l10 9.6L24 4z" fill="currentColor"/>
+        {/* Geometric accent — thin diamond lines */}
+        <svg className="absolute top-3 right-4 w-28 h-28 text-white/10" viewBox="0 0 112 112" fill="none">
+          <rect x="28" y="28" width="56" height="56" rx="4" stroke="currentColor" strokeWidth="1" transform="rotate(45 56 56)"/>
+          <rect x="36" y="36" width="40" height="40" rx="3" stroke="currentColor" strokeWidth="0.75" transform="rotate(45 56 56)"/>
+          <circle cx="56" cy="56" r="6" fill="currentColor" fillOpacity="0.5"/>
         </svg>
-        <svg className="absolute bottom-4 left-8 w-6 h-6 text-white/15" viewBox="0 0 24 24" fill="none">
-          <path d="M12 2l1.5 6.3L20 6l-5 4.8L17 18l-5-3.4L7 18l2-7.2L4 6l6.5 2.3L12 2z" fill="currentColor"/>
+        {/* Small dot grid bottom-left */}
+        <svg className="absolute bottom-4 left-4 w-16 h-16 text-white/12" viewBox="0 0 64 64" fill="none">
+          {[0,16,32,48].map(x => [0,16,32,48].map(y => (
+            <circle key={`${x}-${y}`} cx={x+8} cy={y+8} r="2" fill="currentColor"/>
+          )))}
         </svg>
 
         {/* Content */}
-        <div className="relative z-10 px-5 py-5">
+        <div className="relative z-10 px-5 pt-6 pb-5">
           {user ? (
             <div>
-              <p className="text-white/80 text-xs font-medium mb-1">환영해요, {user.nickname}</p>
-              <h2 className="text-white text-xl font-semibold mb-4" style={{ letterSpacing: "-0.5px" }}>
-                오늘도 함께 공부해요!
+              <div className="flex items-center gap-1.5 mb-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-white/60" />
+                <p className="text-white/75 text-xs font-light tracking-wide">
+                  {user.nickname}님, 안녕하세요
+                </p>
+              </div>
+              <h2 className="text-white text-2xl font-light mb-5" style={{ letterSpacing: "-0.5px", lineHeight: 1.15 }}>
+                오늘도 함께<br/>공부해요
               </h2>
               {/* Quick action cards */}
               <div className="grid grid-cols-4 gap-2">
                 {QUICK_ACTIONS.map((action) => (
                   <Link key={action.href} href={action.href}
-                    className="flex flex-col items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-xl py-2.5 px-1 hover:bg-white transition-all active:scale-95 shadow-sm">
-                    <div className={cn("w-9 h-9 rounded-full flex items-center justify-center", action.color)}>
+                    className="group flex flex-col items-center gap-1.5 bg-white/88 backdrop-blur-md rounded-2xl py-3 px-1 hover:bg-white active:scale-95 transition-all duration-150"
+                    style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.12), 0 1px 3px rgba(0,0,0,0.08)" }}>
+                    <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center transition-transform group-active:scale-90", action.color)}>
                       {action.icon}
                     </div>
-                    <span className="text-[10px] font-semibold text-gray-800 leading-tight text-center">{action.label}</span>
-                    <span className="text-[9px] text-gray-400 leading-none text-center hidden sm:block">{action.desc}</span>
+                    <span className="text-[10px] font-semibold text-[#0d253d] leading-tight tracking-tight text-center">{action.label}</span>
                   </Link>
                 ))}
               </div>
             </div>
           ) : (
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-white/70 text-xs mb-1">학교 정보 공유 플랫폼</p>
-                <h2 className="text-white text-xl font-bold mb-3" style={{ letterSpacing: "-0.5px" }}>
-                  monote에 오신 걸<br/>환영해요 ✨
+            <div className="flex items-end justify-between min-h-[170px]">
+              <div className="flex-1">
+                {/* Eyebrow pill */}
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/15 border border-white/20 mb-3">
+                  <svg viewBox="0 0 12 12" fill="none" className="w-2.5 h-2.5 text-white/80">
+                    <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.2"/>
+                    <path d="M4 6h4M6 4v4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+                  </svg>
+                  <span className="text-[10px] font-medium text-white/80 tracking-widest uppercase">학교 정보 공유</span>
+                </div>
+                <h2 className="text-white text-2xl font-light mb-4" style={{ letterSpacing: "-0.5px", lineHeight: 1.15 }}>
+                  monote에<br/>오신 걸 환영해요
                 </h2>
                 <div className="flex gap-2">
                   <Link href="/register"
-                    className="px-4 py-1.5 bg-white text-[#533afd] text-sm font-semibold rounded-full hover:bg-gray-50 transition-colors shadow-sm">
+                    className="px-5 py-2 bg-white text-[#533afd] text-sm font-medium rounded-full hover:bg-gray-50 active:bg-gray-100 transition-colors"
+                    style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.15)" }}>
                     무료 시작
                   </Link>
                   <Link href="/login"
-                    className="px-4 py-1.5 bg-white/20 text-white text-sm font-medium rounded-full hover:bg-white/30 transition-colors border border-white/30">
+                    className="px-5 py-2 bg-white/15 text-white text-sm font-light rounded-full hover:bg-white/25 transition-colors border border-white/25">
                     로그인
                   </Link>
                 </div>
               </div>
-              {/* Decorative illustration */}
-              <svg viewBox="0 0 80 80" fill="none" className="w-20 h-20 flex-shrink-0 opacity-80">
-                <rect x="8" y="16" width="44" height="56" rx="6" fill="white" fillOpacity="0.25"/>
-                <rect x="16" y="8" width="44" height="56" rx="6" fill="white" fillOpacity="0.35"/>
-                <rect x="10" y="24" width="30" height="3" rx="1.5" fill="white" fillOpacity="0.7"/>
-                <rect x="10" y="31" width="22" height="3" rx="1.5" fill="white" fillOpacity="0.7"/>
-                <rect x="10" y="38" width="26" height="3" rx="1.5" fill="white" fillOpacity="0.7"/>
-                <rect x="10" y="45" width="18" height="3" rx="1.5" fill="white" fillOpacity="0.7"/>
-                <circle cx="58" cy="56" r="14" fill="#f96bee" fillOpacity="0.6"/>
-                <path d="M54 56h8M58 52v8" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
+              {/* Decorative note-stack illustration */}
+              <svg viewBox="0 0 88 96" fill="none" className="w-22 h-24 flex-shrink-0 ml-4 opacity-85">
+                <rect x="6" y="20" width="52" height="66" rx="8" fill="white" fillOpacity="0.18"/>
+                <rect x="14" y="10" width="52" height="66" rx="8" fill="white" fillOpacity="0.28"/>
+                <rect x="22" y="2" width="52" height="66" rx="8" fill="white" fillOpacity="0.4"/>
+                <rect x="30" y="14" width="32" height="2.5" rx="1.25" fill="white" fillOpacity="0.75"/>
+                <rect x="30" y="21" width="24" height="2" rx="1" fill="white" fillOpacity="0.6"/>
+                <rect x="30" y="27" width="28" height="2" rx="1" fill="white" fillOpacity="0.6"/>
+                <rect x="30" y="33" width="20" height="2" rx="1" fill="white" fillOpacity="0.5"/>
+                <circle cx="64" cy="62" r="18" fill="#f96bee" fillOpacity="0.55"/>
+                <path d="M59 62h10M64 57v10" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
               </svg>
             </div>
           )}

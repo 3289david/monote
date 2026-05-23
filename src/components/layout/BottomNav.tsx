@@ -23,11 +23,11 @@ function IconCommunity({ active }: { active: boolean }) {
   );
 }
 
-function IconSearch({ active }: { active: boolean }) {
+function IconChat({ active }: { active: boolean }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5">
-      <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth={active ? 2.2 : 1.7}/>
-      <path d="M21 21l-4.35-4.35" stroke="currentColor" strokeWidth={active ? 2.2 : 1.7} strokeLinecap="round"/>
+      <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"
+        stroke="currentColor" strokeWidth={active ? 2.2 : 1.7} strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   );
 }
@@ -45,7 +45,7 @@ const NAV = [
   { href: "/feed", label: "홈", Icon: IconHome },
   { href: "/community", label: "커뮤니티", Icon: IconCommunity },
   { href: "/post/new", label: "+", special: true, Icon: null },
-  { href: "/search", label: "검색", Icon: IconSearch },
+  { href: "/chat", label: "채팅", Icon: IconChat },
   { href: "/profile", label: "내 정보", Icon: IconProfile },
 ];
 
@@ -61,36 +61,53 @@ export default function BottomNav() {
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white/95 backdrop-blur-sm border-t border-gray-100">
-      <div className="flex items-center h-14 pb-safe">
-        {NAV.map((item) => {
-          const active = pathname === item.href || (item.href !== "/feed" && item.href !== "/search" && pathname.startsWith(item.href));
+    <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden">
+      {/* Top fade edge */}
+      <div className="h-px bg-gradient-to-r from-transparent via-[#e3e8ee] to-transparent" />
+      <div className="bg-white/96 backdrop-blur-xl border-t border-[#e3e8ee]/60"
+        style={{ boxShadow: "0 -1px 0 rgba(0,55,112,0.04), 0 -8px 24px rgba(0,55,112,0.04)" }}>
+        <div className="flex items-center h-[60px] pb-safe px-1">
+          {NAV.map((item) => {
+            const active = pathname === item.href || (item.href !== "/feed" && item.href !== "/chat" && item.href !== "/search" && pathname.startsWith(item.href));
 
-          if (item.special) {
+            if (item.special) {
+              return (
+                <Link key={item.href} href={getHref(item)} className="flex-1 flex flex-col items-center justify-center">
+                  <div className="w-12 h-12 rounded-full bg-[#533afd] flex items-center justify-center -mt-7 transition-transform active:scale-90"
+                    style={{ boxShadow: "0 4px 16px rgba(83,58,253,0.45), 0 1px 4px rgba(83,58,253,0.3)" }}>
+                    <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5">
+                      <path d="M12 5v14M5 12h14" stroke="white" strokeWidth={2.5} strokeLinecap="round"/>
+                    </svg>
+                  </div>
+                </Link>
+              );
+            }
+
+            const Icon = item.Icon!;
             return (
-              <Link key={item.href} href={getHref(item)} className="flex-1 flex flex-col items-center justify-center">
-                <div className="w-11 h-11 rounded-full bg-[#533afd] flex items-center justify-center -mt-5 shadow-lg shadow-[#533afd]/40">
-                  <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5">
-                    <path d="M12 5v14M5 12h14" stroke="white" strokeWidth={2.5} strokeLinecap="round"/>
-                  </svg>
+              <Link key={item.href} href={getHref(item)}
+                className={cn(
+                  "flex-1 flex flex-col items-center justify-center gap-1 h-full transition-all duration-150",
+                  active ? "text-[#533afd]" : "text-[#64748d]"
+                )}
+              >
+                {/* Active indicator dot */}
+                <div className={cn(
+                  "relative flex items-center justify-center transition-all duration-200",
+                  active && "after:absolute after:-top-1 after:left-1/2 after:-translate-x-1/2 after:w-1 after:h-1 after:rounded-full after:bg-[#533afd]"
+                )}>
+                  <Icon active={active} />
                 </div>
+                <span className={cn(
+                  "text-[10px] tracking-tight transition-all duration-150",
+                  active ? "font-semibold" : "font-normal"
+                )}>
+                  {item.label}
+                </span>
               </Link>
             );
-          }
-
-          const Icon = item.Icon!;
-          return (
-            <Link key={item.href} href={getHref(item)}
-              className={cn(
-                "flex-1 flex flex-col items-center justify-center gap-0.5 h-full text-[10px] font-medium transition-colors",
-                active ? "text-[#533afd]" : "text-gray-400"
-              )}
-            >
-              <Icon active={active} />
-              {item.label}
-            </Link>
-          );
-        })}
+          })}
+        </div>
       </div>
     </nav>
   );
