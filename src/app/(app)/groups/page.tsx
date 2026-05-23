@@ -175,7 +175,8 @@ export default function GroupsPage() {
         {groups.map((group: any) => {
           const isFull = group.memberCount >= group.maxMembers;
           return (
-            <div key={group.id} className={cn("rounded-xl border p-4 transition-all", cardBg, !group.isMember && !examMode && "hover:border-[#b9b9f9]")}>
+            <div key={group.id} className={cn("rounded-xl border p-4 transition-all cursor-pointer", cardBg, !examMode && "hover:border-[#b9b9f9]")}
+              onClick={() => window.location.href = `/groups/${group.id}`}>
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1 flex-wrap">
@@ -210,19 +211,24 @@ export default function GroupsPage() {
                     </span>
                     {isFull && <span className="text-xs text-rose-500 font-medium">정원 마감</span>}
                     {group.isMember && group.chatRoomId && (
-                      <Link href={`/chat/${group.chatRoomId}`}
-                        className="flex items-center gap-1 text-xs text-[#533afd] hover:underline">
+                      <span className="flex items-center gap-1 text-xs text-[#533afd]">
                         <svg viewBox="0 0 12 12" fill="none" className="w-3 h-3">
                           <path d="M10 7a1 1 0 01-1 1H3L1 10V3a1 1 0 011-1h7a1 1 0 011 1v4z" stroke="currentColor" strokeWidth={1} strokeLinejoin="round"/>
                         </svg>
-                        그룹 채팅
-                      </Link>
+                        채팅 있음
+                      </span>
                     )}
+                    <span className={cn("text-xs flex items-center gap-1", mutedText)}>
+                      세부 보기 →
+                    </span>
                   </div>
                 </div>
 
                 <button
-                  onClick={() => joinMutation.mutate({ id: group.id, action: group.isMember ? "leave" : "join" })}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    joinMutation.mutate({ id: group.id, action: group.isMember ? "leave" : "join" });
+                  }}
                   disabled={pendingGroupId === group.id || (isFull && !group.isMember) || group.myRole === "leader"}
                   className={cn(
                     "flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-colors",
