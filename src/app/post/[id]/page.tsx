@@ -336,7 +336,7 @@ export default function PostDetailPage() {
                   placeholder="댓글 작성..." rows={1}
                   className="w-full rounded-xl px-3 py-2.5 text-sm resize-none border border-gray-200 focus:outline-none focus:border-[#533afd] bg-gray-50"
                   style={{ minHeight: "40px", maxHeight: "100px" }}
-                  onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSubmitComment(); } }}
+                  onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); handleSubmitComment(); } }}
                 />
               </div>
               <div className="flex items-center gap-2 pb-1">

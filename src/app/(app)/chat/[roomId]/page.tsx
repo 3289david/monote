@@ -185,7 +185,7 @@ export default function ChatRoomPage() {
             )}
             style={{ minHeight: "40px", maxHeight: "120px" }}
             onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
+              if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
                 e.preventDefault();
                 handleSend();
               }
