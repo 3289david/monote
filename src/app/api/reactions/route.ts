@@ -6,13 +6,11 @@ const ALLOWED_EMOJIS = ["👍", "🔥", "😱", "🤔", "💯", "😂"];
 
 export async function GET(req: Request) {
   const session = await auth();
-  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const url = new URL(req.url);
   const postId = url.searchParams.get("postId");
   if (!postId) return NextResponse.json({ error: "postId required" }, { status: 400 });
 
-  // Use raw query since Reaction isn't in Prisma client yet (before migration)
   try {
     const reactions = await (prisma as any).reaction.groupBy({
       by: ["emoji"],
@@ -20,11 +18,14 @@ export async function GET(req: Request) {
       _count: { emoji: true },
     });
 
-    const myReactions = await (prisma as any).reaction.findMany({
-      where: { postId, userId: session.user.id },
-      select: { emoji: true },
-    });
-    const mySet = new Set(myReactions.map((r: any) => r.emoji));
+    let mySet = new Set<string>();
+    if (session?.user?.id) {
+      const myReactions = await (prisma as any).reaction.findMany({
+        where: { postId, userId: session.user.id },
+        select: { emoji: true },
+      });
+      mySet = new Set(myReactions.map((r: any) => r.emoji));
+    }
 
     const result = ALLOWED_EMOJIS.map((emoji) => {
       const found = reactions.find((r: any) => r.emoji === emoji);
@@ -33,7 +34,6 @@ export async function GET(req: Request) {
 
     return NextResponse.json({ reactions: result });
   } catch {
-    // Table may not exist yet before migration
     return NextResponse.json({ reactions: ALLOWED_EMOJIS.map(emoji => ({ emoji, count: 0, reacted: false })) });
   }
 }

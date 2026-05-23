@@ -4,11 +4,11 @@ import type { NextRequest } from "next/server";
 
 const PUBLIC_PATHS = [
   "/login", "/register", "/forgot-password", "/terms", "/privacy",
-  "/community", "/post",
+  "/community", "/post", "/feed", "/board", "/search", "/",
 ];
 const API_PUBLIC = [
   "/api/register", "/api/auth", "/api/schools",
-  "/api/community", "/api/posts",
+  "/api/community", "/api/posts", "/api/search", "/api/reactions",
 ];
 
 export const proxy = auth(function proxy(req: NextRequest & { auth: any }) {

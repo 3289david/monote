@@ -17,8 +17,8 @@ interface UIState {
 export const useUIStore = create<UIState>((set) => ({
   examMode: false,
   sidebarOpen: false,
-  selectedSchoolId: "school-001",
-  selectedGrade: 2,
+  selectedSchoolId: "",
+  selectedGrade: 0,
   selectedSubject: null,
   toggleExamMode: () => set((s) => ({ examMode: !s.examMode })),
   toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),

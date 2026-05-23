@@ -7,9 +7,10 @@ import { usePost, useVote, useBookmark, useComments, useAddComment } from "@/hoo
 import { useReactions, useToggleReaction, useShare } from "@/hooks/useCommunity";
 import { timeAgo, getCategoryLabel, getCategoryColor, getImportanceLabel, getImportanceColor, getLevelColor, getLevelName, cn } from "@/lib/utils";
 import Avatar from "@/components/ui/Avatar";
+import Link from "next/link";
 import toast from "react-hot-toast";
 
-const IMPORTANCE_ICONS: Record<string, string> = { critical: "🔥", high: "⚠", medium: "★", low: "•" };
+const IMPORTANCE_ICONS: Record<string, string> = { critical: "🔥", high: "⚠️", medium: "★", low: "•" };
 const REACTION_EMOJIS = ["👍", "🔥", "😱", "🤔", "💯", "😂"];
 
 export default function PostDetailPage() {
@@ -32,14 +33,40 @@ export default function PostDetailPage() {
   const post = postData?.post;
   const comments = commentsData?.comments ?? [];
   const reactions = reactionsData?.reactions ?? REACTION_EMOJIS.map(e => ({ emoji: e, count: 0, reacted: false }));
+  const isLoggedIn = !!session?.user;
+
+  const requireLogin = (action: string) => {
+    toast.error(`${action}하려면 로그인이 필요해요`, {
+      action: { label: "로그인", onClick: () => router.push(`/login?callbackUrl=/post/${id}`) },
+    } as any);
+    setTimeout(() => router.push(`/login?callbackUrl=/post/${id}`), 1500);
+  };
+
+  const handleVote = () => {
+    if (!isLoggedIn) { requireLogin("추천"); return; }
+    voteMutation.mutate();
+  };
+
+  const handleBookmark = () => {
+    if (!isLoggedIn) { requireLogin("저장"); return; }
+    bookmarkMutation.mutate();
+  };
+
+  const handleReaction = (emoji: string) => {
+    if (!isLoggedIn) { requireLogin("반응"); return; }
+    toggleReaction.mutate(emoji);
+    if (navigator.vibrate) navigator.vibrate(30);
+  };
 
   const handleSubmitComment = () => {
+    if (!isLoggedIn) { requireLogin("댓글 작성"); return; }
     if (!comment.trim()) return;
     addComment.mutate({ content: comment.trim(), anonymous });
     setComment("");
   };
 
   const handleReport = async () => {
+    if (!isLoggedIn) { requireLogin("신고"); return; }
     const res = await fetch(`/api/posts/${id}/report`, { method: "POST" });
     if (res.ok) toast.success("신고가 접수되었어요");
     else toast.error("신고에 실패했어요");
@@ -88,8 +115,8 @@ export default function PostDetailPage() {
     );
   }
 
-  const voted = post.userVoted ?? false;
-  const bookmarked = post.userBookmarked ?? false;
+  const voted = post.isVoted ?? post.userVoted ?? false;
+  const bookmarked = post.isBookmarked ?? post.userBookmarked ?? false;
 
   return (
     <div className={cn("min-h-screen pb-32", examMode ? "bg-[#0f1138]" : "bg-[#f6f9fc]")}>
@@ -101,13 +128,7 @@ export default function PostDetailPage() {
         </button>
         <h1 className={cn("flex-1 text-base font-light truncate", textColor)}>{getCategoryLabel(post.category)}</h1>
 
-        {/* Share button */}
-        <button
-          onClick={handleShare}
-          disabled={shareMutation.isPending}
-          className={cn("p-1.5 mr-1", examMode ? "text-white/60" : "text-[#64748d]")}
-          title="공유하기"
-        >
+        <button onClick={handleShare} disabled={shareMutation.isPending} className={cn("p-1.5 mr-1", examMode ? "text-white/60" : "text-[#64748d]")} title="공유하기">
           <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5">
             <circle cx="18" cy="5" r="3" stroke="currentColor" strokeWidth={1.8}/>
             <circle cx="18" cy="19" r="3" stroke="currentColor" strokeWidth={1.8}/>
@@ -116,7 +137,7 @@ export default function PostDetailPage() {
           </svg>
         </button>
 
-        <button onClick={() => bookmarkMutation.mutate()} disabled={bookmarkMutation.isPending}
+        <button onClick={handleBookmark} disabled={bookmarkMutation.isPending}
           className={cn("p-1.5", bookmarked ? "text-[#533afd]" : examMode ? "text-white/60" : "text-[#64748d]")}>
           <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5">
             <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2v16z" stroke="currentColor" strokeWidth={1.8} fill={bookmarked ? "currentColor" : "none"} />
@@ -135,7 +156,7 @@ export default function PostDetailPage() {
             <span className={cn("text-xs px-2 py-0.5 rounded-full", examMode ? "bg-[#2a2d6b] text-white/60" : "bg-[#f6f9fc] text-[#64748d]")}>{post.subject}</span>
             {post.verified && (
               <span className="text-xs px-2 py-0.5 rounded-full bg-[#533afd] text-white flex items-center gap-1">
-                <svg viewBox="0 0 12 12" fill="none" className="w-3 h-3"><circle cx="6" cy="6" r="5" fill="currentColor" opacity={0.3} /><path d="M3.5 6l1.5 1.5 3.5-3.5" stroke="white" strokeWidth={1.2} strokeLinecap="round" /></svg>
+                <svg viewBox="0 0 12 12" fill="none" className="w-3 h-3"><circle cx="6" cy="6" r="5" fill="currentColor" opacity={0.3}/><path d="M3.5 6l1.5 1.5 3.5-3.5" stroke="white" strokeWidth={1.2} strokeLinecap="round"/></svg>
                 검증됨
               </span>
             )}
@@ -158,12 +179,12 @@ export default function PostDetailPage() {
             <div className="flex gap-2 mb-4 flex-wrap">
               {post.examDate && (
                 <div className="flex items-center gap-1.5 text-sm text-amber-600 bg-amber-50 px-3 py-1.5 rounded-lg">
-                  시험 {Math.max(0, Math.ceil((new Date(post.examDate).getTime() - Date.now()) / 86400000))}일 전
+                  📅 시험 {Math.max(0, Math.ceil((new Date(post.examDate).getTime() - Date.now()) / 86400000))}일 전
                 </div>
               )}
               {post.dueDate && (
                 <div className="flex items-center gap-1.5 text-sm text-rose-600 bg-rose-50 px-3 py-1.5 rounded-lg">
-                  제출 {Math.max(0, Math.ceil((new Date(post.dueDate).getTime() - Date.now()) / 86400000))}일 전
+                  📋 제출 {Math.max(0, Math.ceil((new Date(post.dueDate).getTime() - Date.now()) / 86400000))}일 전
                 </div>
               )}
             </div>
@@ -174,7 +195,10 @@ export default function PostDetailPage() {
           {post.tags.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-4">
               {post.tags.map((tag: string) => (
-                <span key={tag} className={cn("text-xs px-2.5 py-1 rounded-full", examMode ? "bg-[#2a2d6b] text-[#b9b9f9]" : "bg-[#b9b9f9]/30 text-[#4434d4]")}>#{tag}</span>
+                <Link key={tag} href={`/board?tag=${encodeURIComponent(tag)}`}
+                  className={cn("text-xs px-2.5 py-1 rounded-full transition-colors", examMode ? "bg-[#2a2d6b] text-[#b9b9f9] hover:bg-[#363996]" : "bg-[#b9b9f9]/30 text-[#4434d4] hover:bg-[#eeeaff]")}>
+                  #{tag}
+                </Link>
               ))}
             </div>
           )}
@@ -189,13 +213,13 @@ export default function PostDetailPage() {
                     examMode ? "bg-[#2a2d6b] border-[#363996] hover:bg-[#363996]" : "bg-[#f6f9fc] border-[#e3e8ee] hover:border-[#533afd]")}>
                   <div className="w-8 h-8 rounded bg-[#533afd]/10 flex items-center justify-center">
                     <svg viewBox="0 0 16 16" fill="none" className="w-4 h-4 text-[#533afd]">
-                      <path d="M9 2H3a1 1 0 00-1 1v10a1 1 0 001 1h10a1 1 0 001-1V7l-5-5z" stroke="currentColor" strokeWidth={1.2} />
-                      <path d="M9 2v5h5" stroke="currentColor" strokeWidth={1.2} />
+                      <path d="M9 2H3a1 1 0 00-1 1v10a1 1 0 001 1h10a1 1 0 001-1V7l-5-5z" stroke="currentColor" strokeWidth={1.2}/>
+                      <path d="M9 2v5h5" stroke="currentColor" strokeWidth={1.2}/>
                     </svg>
                   </div>
                   <p className={cn("text-sm truncate flex-1", textColor)}>{file.name}</p>
                   <svg viewBox="0 0 16 16" fill="none" className="w-4 h-4 flex-shrink-0 text-[#64748d]">
-                    <path d="M8 3v7M5 7l3 3 3-3M2 13h12" stroke="currentColor" strokeWidth={1.3} strokeLinecap="round" />
+                    <path d="M8 3v7M5 7l3 3 3-3M2 13h12" stroke="currentColor" strokeWidth={1.3} strokeLinecap="round"/>
                   </svg>
                 </a>
               ))}
@@ -208,7 +232,7 @@ export default function PostDetailPage() {
               {reactions.map(({ emoji, count, reacted }: { emoji: string; count: number; reacted: boolean }) => (
                 <button
                   key={emoji}
-                  onClick={() => toggleReaction.mutate(emoji)}
+                  onClick={() => handleReaction(emoji)}
                   disabled={toggleReaction.isPending}
                   className={cn(
                     "flex items-center gap-1 px-2.5 py-1.5 rounded-full text-sm transition-all active:scale-95",
@@ -226,17 +250,28 @@ export default function PostDetailPage() {
             </div>
           </div>
 
+          {/* Vote + report row */}
           <div className="flex items-center gap-2 mt-4">
-            <button onClick={() => voteMutation.mutate()} disabled={voteMutation.isPending}
-              className={cn("flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all",
-                voted ? "bg-[#533afd] text-white"
-                  : examMode ? "bg-[#2a2d6b] text-white/60 hover:bg-[#363996]"
-                  : "bg-[#f6f9fc] text-[#273951] hover:bg-[#eeeaff] hover:text-[#533afd] border border-[#e3e8ee]")}>
+            <button onClick={handleVote} disabled={voteMutation.isPending}
+              className={cn(
+                "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all",
+                voted
+                  ? "bg-[#533afd] text-white"
+                  : examMode
+                  ? "bg-[#2a2d6b] text-white/60 hover:bg-[#363996]"
+                  : "bg-[#f6f9fc] text-[#273951] hover:bg-[#eeeaff] hover:text-[#533afd] border border-[#e3e8ee]"
+              )}>
               <svg viewBox="0 0 16 16" fill="none" className="w-4 h-4">
-                <path d="M8 2l1.5 4.5H14l-3.8 2.8 1.5 4.5L8 11.1l-3.7 2.7 1.5-4.5L2 6.5h4.5L8 2z" stroke="currentColor" strokeWidth={1.2} fill={voted ? "currentColor" : "none"} />
+                <path d="M8 2l1.5 4.5H14l-3.8 2.8 1.5 4.5L8 11.1l-3.7 2.7 1.5-4.5L2 6.5h4.5L8 2z" stroke="currentColor" strokeWidth={1.2} fill={voted ? "currentColor" : "none"}/>
               </svg>
               도움됐어요 {post.voteCount}
             </button>
+            {!isLoggedIn && (
+              <Link href={`/login?callbackUrl=/post/${id}`}
+                className="text-xs px-3 py-1.5 rounded-full bg-[#eeeaff] text-[#533afd] hover:bg-[#b9b9f9]/30 transition-colors">
+                로그인하여 추천·저장
+              </Link>
+            )}
             <button onClick={handleReport} className={cn("ml-auto text-xs px-3 py-1.5 rounded-full", examMode ? "text-white/30 hover:text-white/60" : "text-[#64748d] hover:text-red-500")}>
               신고
             </button>
@@ -250,8 +285,7 @@ export default function PostDetailPage() {
             <div key={c.id} className={cn("rounded-xl border p-4", c.isAnswer && "border-[#533afd]/30", examMode ? "bg-[#1c1e54] border-[#2a2d6b]" : "bg-white border-[#e3e8ee]")}>
               {c.isAnswer && (
                 <div className="flex items-center gap-1 text-xs text-[#533afd] mb-2">
-                  <svg viewBox="0 0 12 12" fill="none" className="w-3 h-3"><circle cx="6" cy="6" r="5" fill="#533afd" /><path d="M3.5 6l1.5 1.5 3.5-3.5" stroke="white" strokeWidth={1.2} strokeLinecap="round" /></svg>
-                  추가 정보
+                  ✅ 추가 정보
                 </div>
               )}
               <div className="flex items-start gap-2.5">
@@ -273,31 +307,47 @@ export default function PostDetailPage() {
           )}
         </div>
 
-        {/* Comment input (fixed) */}
+        {/* Comment input */}
         <div className={cn("fixed bottom-16 md:bottom-0 left-0 right-0 border-t px-4 py-3", examMode ? "bg-[#1c1e54] border-[#2a2d6b]" : "bg-white border-[#e3e8ee]")}>
-          <div className="max-w-2xl mx-auto flex gap-2 items-end">
-            <div className="flex-1 space-y-1.5">
-              <div className="flex items-center gap-2">
-                <button onClick={() => setAnonymous(!anonymous)}
-                  className={cn("text-xs px-2.5 py-1 rounded-full transition-all",
-                    anonymous ? "bg-[#533afd] text-white" : examMode ? "bg-[#2a2d6b] text-white/60" : "bg-[#f6f9fc] text-[#64748d] border border-[#e3e8ee]")}>
-                  {anonymous ? "익명 ON" : "익명"}
+          <div className="max-w-2xl mx-auto">
+            {!isLoggedIn ? (
+              <Link href={`/login?callbackUrl=/post/${id}`}
+                className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-[#f6f9fc] border border-[#e3e8ee] text-sm text-[#64748d] hover:bg-[#eeeaff] hover:text-[#533afd] hover:border-[#b9b9f9] transition-colors">
+                <svg viewBox="0 0 16 16" fill="none" className="w-4 h-4"><path d="M14 10a2 2 0 01-2 2H6l-3 3V5a2 2 0 012-2h7a2 2 0 012 2v5z" stroke="currentColor" strokeWidth={1.2}/></svg>
+                로그인 후 댓글 달기
+              </Link>
+            ) : (
+              <div className="flex gap-2 items-end">
+                <div className="flex-1 space-y-1.5">
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => setAnonymous(!anonymous)}
+                      className={cn("text-xs px-2.5 py-1 rounded-full transition-all",
+                        anonymous ? "bg-[#533afd] text-white" : examMode ? "bg-[#2a2d6b] text-white/60" : "bg-[#f6f9fc] text-[#64748d] border border-[#e3e8ee]")}>
+                      {anonymous ? "익명 ON" : "익명"}
+                    </button>
+                  </div>
+                  <textarea
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                    placeholder="댓글을 입력하세요..."
+                    rows={1}
+                    className={cn("w-full rounded-xl px-3 py-2.5 text-sm resize-none border transition-colors focus:outline-none focus:border-[#533afd]",
+                      examMode ? "bg-[#2a2d6b] border-[#363996] text-white placeholder:text-white/30" : "bg-[#f6f9fc] border-[#e3e8ee] text-[#0d253d] placeholder:text-[#64748d]")}
+                    style={{ minHeight: "40px", maxHeight: "100px" }}
+                    onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSubmitComment(); } }}
+                  />
+                </div>
+                <button
+                  onClick={handleSubmitComment}
+                  disabled={!comment.trim() || addComment.isPending}
+                  className="w-10 h-10 rounded-full bg-[#533afd] text-white flex items-center justify-center flex-shrink-0 disabled:opacity-40 hover:bg-[#4434d4] transition-colors"
+                >
+                  <svg viewBox="0 0 16 16" fill="none" className="w-4 h-4">
+                    <path d="M14 8H2M14 8l-5 5M14 8l-5-5" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
                 </button>
               </div>
-              <textarea value={comment} onChange={(e) => setComment(e.target.value)}
-                placeholder="댓글을 입력하세요..." rows={1}
-                className={cn("w-full rounded-xl px-3 py-2.5 text-sm resize-none border transition-colors focus:outline-none focus:border-[#533afd]",
-                  examMode ? "bg-[#2a2d6b] border-[#363996] text-white placeholder:text-white/30" : "bg-[#f6f9fc] border-[#e3e8ee] text-[#0d253d] placeholder:text-[#64748d]")}
-                style={{ minHeight: "40px", maxHeight: "100px" }}
-                onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSubmitComment(); } }}
-              />
-            </div>
-            <button onClick={handleSubmitComment} disabled={!comment.trim() || addComment.isPending}
-              className="w-10 h-10 rounded-full bg-[#533afd] text-white flex items-center justify-center flex-shrink-0 disabled:opacity-40 hover:bg-[#4434d4] transition-colors">
-              <svg viewBox="0 0 16 16" fill="none" className="w-4 h-4">
-                <path d="M14 8H2M14 8l-5 5M14 8l-5-5" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
+            )}
           </div>
         </div>
       </div>

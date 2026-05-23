@@ -25,9 +25,6 @@ const createSchema = z.object({
 
 export async function GET(req: NextRequest) {
   const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({ error: "로그인이 필요해요" }, { status: 401 });
-  }
 
   const { searchParams } = new URL(req.url);
   const grade = searchParams.get("grade");
@@ -38,10 +35,12 @@ export async function GET(req: NextRequest) {
   const page = parseInt(searchParams.get("page") ?? "1");
   const limit = 20;
 
-  const where: any = {
-    schoolId: (session.user as any).schoolId,
-    reportCount: { lt: 5 },
-  };
+  const where: any = { reportCount: { lt: 5 } };
+
+  // Filter by school only when logged in
+  if (session?.user) {
+    where.schoolId = (session.user as any).schoolId;
+  }
 
   if (grade) where.grade = parseInt(grade);
   if (subject) where.subject = subject;
@@ -67,21 +66,25 @@ export async function GET(req: NextRequest) {
     prisma.post.count({ where }),
   ]);
 
-  // Get user's votes/bookmarks for these posts
+  // Get user's votes/bookmarks only when logged in
   const postIds = posts.map((p) => p.id);
-  const [userVotes, userBookmarks] = await Promise.all([
-    prisma.vote.findMany({
-      where: { userId: session.user.id, postId: { in: postIds } },
-      select: { postId: true },
-    }),
-    prisma.bookmark.findMany({
-      where: { userId: session.user.id, postId: { in: postIds } },
-      select: { postId: true },
-    }),
-  ]);
+  let votedSet = new Set<string>();
+  let bookmarkedSet = new Set<string>();
 
-  const votedSet = new Set(userVotes.map((v) => v.postId));
-  const bookmarkedSet = new Set(userBookmarks.map((b) => b.postId));
+  if (session?.user && postIds.length > 0) {
+    const [userVotes, userBookmarks] = await Promise.all([
+      prisma.vote.findMany({
+        where: { userId: session.user.id, postId: { in: postIds } },
+        select: { postId: true },
+      }),
+      prisma.bookmark.findMany({
+        where: { userId: session.user.id, postId: { in: postIds } },
+        select: { postId: true },
+      }),
+    ]);
+    votedSet = new Set(userVotes.map((v) => v.postId));
+    bookmarkedSet = new Set(userBookmarks.map((b) => b.postId));
+  }
 
   const result = posts.map((p) => ({
     id: p.id,

@@ -2,16 +2,16 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { cn } from "@/lib/utils";
-import { useUIStore } from "@/store/ui-store";
 import Avatar from "@/components/ui/Avatar";
+import { useUIStore } from "@/store/ui-store";
+import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 
 const PAGE_TITLES: Record<string, string> = {
   "/feed": "홈", "/board": "게시판", "/chat": "채팅",
-  "/ranking": "랭킹", "/profile": "내 정보", "/search": "검색",
+  "/profile": "내 정보", "/search": "검색",
   "/dday": "D-Day", "/timer": "공부 타이머", "/groups": "스터디 그룹",
-  "/notifications": "알림",
+  "/notifications": "알림", "/community": "커뮤니티",
 };
 
 export default function TopBar() {
@@ -22,7 +22,7 @@ export default function TopBar() {
   const toggleExamMode = useUIStore((s) => s.toggleExamMode);
   const user = session?.user;
 
-  const isHome = pathname === "/feed";
+  const isHome = pathname === "/feed" || pathname === "/community";
   const title = PAGE_TITLES[pathname] ?? "";
 
   const { data: notifData } = useQuery({
@@ -35,11 +35,10 @@ export default function TopBar() {
 
   return (
     <header className={cn(
-      "sticky top-0 z-40 border-b transition-colors",
-      examMode ? "bg-[#1c1e54]/95 backdrop-blur-xl border-[#2a2d6b]" : "bg-white/90 backdrop-blur-xl border-[#e3e8ee]"
+      "sticky top-0 z-40 border-b backdrop-blur-xl",
+      examMode ? "bg-[#1c1e54]/95 border-[#2a2d6b]" : "bg-white/90 border-[#e3e8ee]"
     )}>
       <div className="flex items-center justify-between px-4 h-14 max-w-2xl mx-auto">
-        {/* Left */}
         {isHome ? (
           <Link href="/feed" className="flex items-center gap-2">
             <svg viewBox="0 0 32 32" fill="none" className="w-7 h-7">
@@ -60,35 +59,57 @@ export default function TopBar() {
           <h1 className={cn("absolute left-1/2 -translate-x-1/2 font-light text-base", examMode ? "text-white" : "text-[#0d253d]")}>{title}</h1>
         )}
 
-        <div className="flex items-center gap-1.5">
-          <button onClick={toggleExamMode}
-            className={cn("text-xs px-2.5 py-1 rounded-full font-medium transition-all",
-              examMode ? "bg-amber-400 text-amber-900" : "bg-amber-50 text-amber-600 border border-amber-200"
-            )}>
-            {examMode ? "시험모드 ON" : "시험모드"}
-          </button>
-
-          <Link href="/search" className={cn("p-1.5 rounded-lg", examMode ? "text-white/70 hover:text-white" : "text-[#64748d] hover:text-[#0d253d]")}>
-            <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5">
-              <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth={1.8}/>
-              <path d="M16.5 16.5L21 21" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round"/>
-            </svg>
-          </Link>
-
-          <Link href="/notifications" className={cn("p-1.5 rounded-lg relative", examMode ? "text-white/70 hover:text-white" : "text-[#64748d] hover:text-[#0d253d]")}>
-            <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5">
-              <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            {unreadCount > 0 && (
-              <span className="absolute top-0.5 right-0.5 min-w-4 h-4 bg-red-500 rounded-full text-[9px] text-white flex items-center justify-center px-0.5">
-                {unreadCount > 9 ? "9+" : unreadCount}
-              </span>
-            )}
-          </Link>
+        <div className="flex items-center gap-1">
+          {/* Search (hidden on search page) */}
+          {pathname !== "/search" && (
+            <Link href="/search" className={cn("p-1.5 rounded-lg", examMode ? "text-white/60 hover:text-white" : "text-[#64748d] hover:text-[#0d253d]")}>
+              <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5">
+                <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth={1.8}/>
+                <path d="M16.5 16.5L21 21" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round"/>
+              </svg>
+            </Link>
+          )}
 
           {user && (
-            <Link href="/profile">
-              <Avatar nickname={user.nickname} level={user.level} size="sm" imageUrl={user.image ?? undefined} />
+            <>
+              {/* Exam mode toggle */}
+              <button
+                onClick={toggleExamMode}
+                className={cn(
+                  "p-1.5 rounded-lg text-xs font-bold transition-colors",
+                  examMode ? "text-amber-400 bg-amber-400/10" : "text-[#64748d] hover:text-[#0d253d]"
+                )}
+                title={examMode ? "시험 직전 모드 끄기" : "시험 직전 모드 켜기"}
+              >
+                {examMode ? "⭐" : (
+                  <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5">
+                    <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6L12 2z" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                )}
+              </button>
+
+              {/* Notifications */}
+              <Link href="/notifications" className={cn("p-1.5 rounded-lg relative", examMode ? "text-white/60 hover:text-white" : "text-[#64748d] hover:text-[#0d253d]")}>
+                <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5">
+                  <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                {unreadCount > 0 && (
+                  <span className="absolute top-0.5 right-0.5 min-w-4 h-4 bg-red-500 rounded-full text-[9px] text-white flex items-center justify-center px-0.5">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </Link>
+
+              {/* Avatar */}
+              <Link href="/profile">
+                <Avatar nickname={user.nickname} level={user.level} size="sm" imageUrl={user.image ?? undefined} />
+              </Link>
+            </>
+          )}
+
+          {!user && (
+            <Link href="/login" className="text-xs px-3 py-1.5 bg-[#533afd] text-white rounded-full font-medium hover:bg-[#4434d4] transition-colors">
+              로그인
             </Link>
           )}
         </div>

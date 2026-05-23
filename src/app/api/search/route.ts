@@ -4,22 +4,24 @@ import prisma from "@/lib/prisma";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
-  if (!session?.user) return NextResponse.json({ error: "로그인 필요" }, { status: 401 });
 
   const { searchParams } = new URL(req.url);
   const q = searchParams.get("q")?.trim();
   if (!q || q.length < 2) return NextResponse.json({ posts: [] });
 
+  const where: any = {
+    reportCount: { lt: 5 },
+    OR: [
+      { title: { contains: q, mode: "insensitive" } },
+      { content: { contains: q, mode: "insensitive" } },
+      { tags: { has: q } },
+    ],
+  };
+  // Filter by school when logged in
+  if (session?.user) where.schoolId = (session.user as any).schoolId;
+
   const posts = await prisma.post.findMany({
-    where: {
-      schoolId: (session.user as any).schoolId,
-      reportCount: { lt: 5 },
-      OR: [
-        { title: { contains: q, mode: "insensitive" } },
-        { content: { contains: q, mode: "insensitive" } },
-        { tags: { has: q } },
-      ],
-    },
+    where,
     orderBy: { createdAt: "desc" },
     take: 30,
     include: {
