@@ -149,7 +149,7 @@ export default function FeedPage() {
         <div className="relative z-10 px-5 py-5">
           {user ? (
             <div>
-              <p className="text-white/80 text-xs font-medium mb-1">환영해요, {user.nickname} 👋</p>
+              <p className="text-white/80 text-xs font-medium mb-1">환영해요, {user.nickname}</p>
               <h2 className="text-white text-xl font-semibold mb-4" style={{ letterSpacing: "-0.5px" }}>
                 오늘도 함께 공부해요!
               </h2>

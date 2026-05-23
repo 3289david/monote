@@ -5,6 +5,7 @@ import { cn, timeAgo, getCategoryLabel, getCategoryColor } from "@/lib/utils";
 import { useTrending, usePolls, useCreatePoll, useVotePoll } from "@/hooks/useCommunity";
 import { useSession } from "next-auth/react";
 import Avatar from "@/components/ui/Avatar";
+import GradientHero from "@/components/ui/GradientHero";
 import toast from "react-hot-toast";
 
 type TrendingPeriod = "today" | "week" | "month";
@@ -250,11 +251,19 @@ export default function CommunityPage() {
 
   return (
     <div className="pb-4">
-      {/* Header */}
-      <div className="mb-4">
-        <h1 className="text-xl font-light text-[#0d253d]" style={{ letterSpacing: "-0.4px" }}>커뮤니티</h1>
-        <p className="text-sm text-[#64748d] mt-0.5">학생들의 인기 게시물과 투표를 확인해요</p>
-      </div>
+      {/* Gradient Hero */}
+      <GradientHero
+        title="커뮤니티"
+        subtitle="트렌딩 게시물, 투표, 익명 게시판"
+        illustration={
+          <svg viewBox="0 0 56 56" fill="none" style={{ width: "56px", height: "56px" }}>
+            <circle cx="20" cy="20" r="12" stroke="white" strokeWidth="1.5" strokeOpacity="0.6"/>
+            <circle cx="38" cy="30" r="9" stroke="white" strokeWidth="1.5" strokeOpacity="0.5"/>
+            <path d="M28 14v8M24 18h8" stroke="white" strokeWidth="2" strokeLinecap="round" strokeOpacity="0.8"/>
+            <path d="M32 26v6M29 29h6" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeOpacity="0.7"/>
+          </svg>
+        }
+      />
 
       {/* Login prompt banner */}
       {!session && (

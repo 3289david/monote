@@ -7,6 +7,7 @@ import { useUIStore } from "@/store/ui-store";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import type { PostCategory } from "@/types";
+import GradientHero from "@/components/ui/GradientHero";
 
 const SUBJECTS = ["국어", "수학", "영어", "과학", "사회", "역사", "물리", "화학", "생명과학", "지구과학", "한국사", "음악", "미술", "체육", "기술가정", "정보"];
 
@@ -42,15 +43,21 @@ function BoardContent() {
 
   return (
     <div className="space-y-4">
+      <GradientHero
+        title={selectedSubject || "전체 게시판"}
+        subtitle={`${selectedGrade ? `${selectedGrade}학년` : "전학년"} · ${isLoading ? "..." : `${posts.length}개 게시물`}`}
+        compact
+        illustration={
+          <svg viewBox="0 0 48 48" fill="none" style={{ width: "48px", height: "48px" }}>
+            <rect x="6" y="8" width="36" height="32" rx="4" stroke="white" strokeWidth="1.5" strokeOpacity="0.5"/>
+            <path d="M13 18h22M13 24h16M13 30h19" stroke="white" strokeWidth="2" strokeLinecap="round" strokeOpacity="0.8"/>
+            <circle cx="36" cy="34" r="8" fill="white" fillOpacity="0.2"/>
+            <path d="M33 34h6M36 31v6" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+          </svg>
+        }
+      />
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className={cn("text-xl font-light", textColor)} style={{ letterSpacing: "-0.4px" }}>
-            {selectedSubject || "전체 게시판"}
-          </h1>
-          <p className={cn("text-sm mt-0.5", mutedText)}>
-            {selectedGrade ? `${selectedGrade}학년` : "전학년"} · {isLoading ? "..." : `${posts.length}개 게시물`}
-          </p>
-        </div>
+        <div />
         <div className="flex gap-1">
           {(["latest", "popular", "hot"] as const).map((s) => (
             <button key={s} onClick={() => setSortBy(s)}

@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useUIStore } from "@/store/ui-store";
 import { cn } from "@/lib/utils";
 import PostCard from "@/components/posts/PostCard";
+import GradientHero from "@/components/ui/GradientHero";
 
 const POPULAR_SEARCHES = [
   "수학 시험 범위", "영어 수행평가", "삼각함수", "국어 서술형",
@@ -34,6 +35,18 @@ export default function SearchPage() {
 
   return (
     <div className="space-y-4">
+      <GradientHero
+        title="검색"
+        subtitle="게시물, 태그, 과목을 검색해요"
+        compact
+        illustration={
+          <svg viewBox="0 0 48 48" fill="none" style={{ width: "44px", height: "44px" }}>
+            <circle cx="20" cy="20" r="12" stroke="white" strokeWidth="2" strokeOpacity="0.7"/>
+            <path d="M29 29l10 10" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeOpacity="0.8"/>
+            <path d="M15 20h10M20 15v10" stroke="white" strokeWidth="2" strokeLinecap="round" strokeOpacity="0.9"/>
+          </svg>
+        }
+      />
       {/* Search bar */}
       <div className={cn(
         "flex items-center gap-2 rounded-xl border px-3 py-2.5",

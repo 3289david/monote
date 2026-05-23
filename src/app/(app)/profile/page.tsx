@@ -7,6 +7,7 @@ import { cn, getLevelColor, getLevelName, calculateLevel, getNextLevelPoints } f
 import Avatar from "@/components/ui/Avatar";
 import PostCard from "@/components/posts/PostCard";
 import toast from "react-hot-toast";
+import GradientHero from "@/components/ui/GradientHero";
 
 const BADGE_DETAILS: Record<string, { name: string; desc: string; color: string }> = {
   exam_master: { name: "범위 마스터", desc: "시험 범위 정보 10개 이상 공유", color: "bg-violet-100 text-violet-700 border-violet-200" },
@@ -81,7 +82,13 @@ export default function ProfilePage() {
   return (
     <div className="space-y-4">
       {/* Profile hero */}
-      <div className={cn("rounded-2xl p-5", examMode ? "bg-gradient-to-br from-[#1c1e54] to-[#2e2b8c]" : "bg-gradient-to-br from-[#533afd] to-[#1c1e54]")}>
+      <div className="rounded-2xl p-5 relative overflow-hidden" style={{ background: "linear-gradient(135deg, #f5e9d4 0%, #f96bee 28%, #b9b9f9 52%, #533afd 76%, #1c1e54 100%)" }}>
+        <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 400 180" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="360" cy="30" rx="100" ry="70" fill="white" fillOpacity="0.07"/>
+          <circle cx="380" cy="150" r="50" fill="#ea2261" fillOpacity="0.15"/>
+          <circle cx="10" cy="10" r="35" fill="#f96bee" fillOpacity="0.1"/>
+        </svg>
+        <div className="relative z-10">
         <div className="flex items-center gap-4">
           <Avatar nickname={user.nickname} level={user.level ?? 1} size="xl" imageUrl={user.image ?? undefined} />
           <div className="flex-1 min-w-0">
@@ -118,6 +125,7 @@ export default function ProfilePage() {
             </div>
           ))}
         </div>
+        </div>{/* end z-10 */}
       </div>
 
       {/* Badges */}

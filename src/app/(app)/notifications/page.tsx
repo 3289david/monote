@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useUIStore } from "@/store/ui-store";
 import { cn, timeAgo } from "@/lib/utils";
 import Link from "next/link";
+import GradientHero from "@/components/ui/GradientHero";
 
 import type { ReactElement } from "react";
 
@@ -65,13 +66,20 @@ export default function NotificationsPage() {
 
   return (
     <div className="space-y-4">
+      <GradientHero
+        title="알림"
+        subtitle={unreadCount > 0 ? `읽지 않은 알림 ${unreadCount}개` : "모든 알림을 확인했어요"}
+        compact
+        illustration={
+          <svg viewBox="0 0 48 48" fill="none" style={{ width: "44px", height: "44px" }}>
+            <path d="M24 6a14 14 0 00-14 14v8l-3 5h34l-3-5v-8A14 14 0 0024 6z" stroke="white" strokeWidth="1.5" strokeLinejoin="round" strokeOpacity="0.8"/>
+            <path d="M20 37a4 4 0 008 0" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeOpacity="0.8"/>
+            {unreadCount > 0 && <circle cx="36" cy="12" r="6" fill="#ea2261" fillOpacity="0.9"/>}
+          </svg>
+        }
+      />
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className={cn("text-xl font-light", textColor)} style={{ letterSpacing: "-0.4px" }}>알림</h1>
-          {unreadCount > 0 && (
-            <p className={cn("text-sm", mutedText)}>읽지 않은 알림 {unreadCount}개</p>
-          )}
-        </div>
+        <div />
         {unreadCount > 0 && (
           <button onClick={() => markAllRead.mutate()} disabled={markAllRead.isPending}
             className="text-sm text-[#533afd] hover:underline disabled:opacity-50">
